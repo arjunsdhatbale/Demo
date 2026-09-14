@@ -4,6 +4,8 @@ import {   OnDestroy } from '@angular/core';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -18,9 +20,9 @@ export class WebsocketService implements OnDestroy {
   connect(): void {
     this.client = new Client({
 
-      // ✅ Use imported SockJS for browser compatibility
+      // ✅ Use imported SockJS for browser compatibility with Spring Boot
       webSocketFactory: () => {
-        return new SockJS('http://localhost:8080/ws');
+        return new SockJS(environment.wsUrl);
       },
 
       onConnect: () => {
@@ -64,14 +66,16 @@ export class WebsocketService implements OnDestroy {
     return null;
   }
 
-  sendMessage(destination: string, body: string): void {
+  sendMessage(destination: string, body: string): boolean {
     if (this.client?.connected) {
       this.client.publish({
         destination,
         body
       });
+      return true;
     } else {
       console.warn('WebSocket not connected yet');
+      return false;
     }
   }
 

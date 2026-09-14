@@ -1,116 +1,245 @@
  
 
-  <!-- ── Top Navbar ── -->
-  <header class="top-navbar">
+<div class="app-layout">
 
-    <div class="navbar-left">
-      <!-- Hamburger toggle -->
-      <p-button
-        icon="pi pi-bars"
-        [text]="true"
-        [rounded]="true"
-        severity="secondary"
-        (onClick)="toggleSidebar()" />
+  <!-- ── Full-Page PrimeNG Sidebar ── -->
+  <p-sidebar
+    [(visible)]="sidebarVisible"
+    [modal]="isMobile"
+    [dismissible]="true"
+    [showCloseIcon]="true"
+    [blockScroll]="false"
+    position="left"
+    styleClass="app-fullpage-sidebar"
+    [style]="{ width: '280px' }">
 
-      <!-- App Logo -->
-      <div class="app-logo" (click)="navigateTo('/dashboard')">
-        <i class="pi pi-prime"></i>
-        <span>MyApp</span>
+    <!-- Header / Brand & Toggler -->
+    <ng-template pTemplate="header">
+      <div class="sidebar-header-row">
+        <div class="sidebar-brand-box" (click)="navigateTo('/dashboard')">
+          <div class="brand-logo-circle">
+            <i class="pi pi-prime"></i>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">MyApp</span>
+            <span class="brand-tag">PrimeNG 19</span>
+          </div>
+        </div>
+
+        <!-- Toggler button inside Sidebar to Hide it -->
+        <p-button
+          icon="pi pi-chevron-left"
+          [text]="true"
+          [rounded]="true"
+          severity="secondary"
+          pTooltip="Hide Sidebar"
+          styleClass="sidebar-toggle-btn"
+          (onClick)="toggleSidebar()" />
       </div>
-    </div>
+    </ng-template>
 
-    <div class="navbar-right">
-
-      <!-- Notification Bell -->
-      <div class="nav-icon-btn" (click)="navigateTo('/notifications')">
-        <i class="pi pi-bell"></i>
-        <span class="nav-badge" *ngIf="unreadCount() > 0">
-          {{ unreadCount() }}
-        </span>
-      </div>
-
-      <!-- Chat -->
-      <div class="nav-icon-btn" (click)="navigateTo('/chat')">
-        <i class="pi pi-comments"></i>
-      </div>
-
-      <!-- User Avatar -->
-      <div class="nav-avatar">
-        <p-avatar
-          label="A"
-          shape="circle"
-          styleClass="cursor-pointer" />
-        <span class="nav-username">Arjun</span>
-      </div>
-
-      <!-- Logout -->
-      <p-button
-        icon="pi pi-sign-out"
-        [text]="true"
-        [rounded]="true"
-        severity="secondary"
-        pTooltip="Logout"
-        (onClick)="logout()" />
-
-    </div>
-  </header>
-
-  <!-- ── Main Body ── -->
-  <div class="app-body">
-
-    <!-- ── Sidebar ── -->
-    <aside
-      class="app-sidebar"
-      [class.sidebar-open]="sidebarVisible"
-      [class.sidebar-closed]="!sidebarVisible">
-
-      <!-- Sidebar Menu -->
+    <!-- Navigation Menu -->
+    <div class="sidebar-nav-container">
       <nav class="sidebar-nav">
-
         <div
           *ngFor="let item of menuItems"
           class="nav-item"
           [class.active]="isActive(item.route)"
-          (click)="navigateTo(item.route)">
+          (click)="onNavItemClick(item.route)">
 
           <i [class]="item.icon"></i>
-
           <span class="nav-label">{{ item.label }}</span>
 
           <!-- Badge for notifications -->
-          <span
-            class="nav-badge-inline"
-            *ngIf="item.badge && unreadCount() > 0">
-            {{ unreadCount() }}
-          </span>
-
+          <p-badge
+            *ngIf="item.badge && unreadCount() > 0"
+            [value]="unreadCount()"
+            severity="danger"
+            styleClass="sidebar-badge" />
         </div>
-
       </nav>
 
-      <!-- Sidebar Footer -->
-      <div class="sidebar-footer">
-        <p-divider />
-        <div class="footer-user">
-          <p-avatar label="A" shape="circle" size="normal" />
-          <div class="footer-user-info" *ngIf="sidebarVisible">
+      <!-- Explicit Hide Sidebar button inside menu -->
+      <div class="sidebar-collapse-wrapper">
+        <p-button
+          label="Hide Sidebar"
+          icon="pi pi-angle-double-left"
+          severity="secondary"
+          [outlined]="true"
+          size="small"
+          styleClass="w-full"
+          (onClick)="toggleSidebar()" />
+      </div>
+    </div>
+
+    <!-- Footer / User Profile -->
+    <ng-template pTemplate="footer">
+      <div class="sidebar-footer-box">
+        <div class="footer-user-row">
+          <p-avatar label="A" shape="circle" size="large" />
+          <div class="footer-user-info">
             <span class="footer-name">Arjun Dhatbale</span>
             <span class="footer-role">Administrator</span>
           </div>
+          <p-button
+            icon="pi pi-sign-out"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            pTooltip="Logout"
+            (onClick)="logout()" />
         </div>
       </div>
+    </ng-template>
 
-    </aside>
+  </p-sidebar>
+
+  <!-- ── Floating Quick Toggler (visible when sidebar is hidden) ── -->
+  <div class="floating-sidebar-toggler" *ngIf="!sidebarVisible">
+    <p-button
+      icon="pi pi-bars"
+      label="Menu"
+      severity="primary"
+      [rounded]="true"
+      size="small"
+      pTooltip="Click to Show Sidebar"
+      tooltipPosition="right"
+      (onClick)="toggleSidebar()" />
+  </div>
+
+  <!-- ── Main Area (shifts right when sidebar is open on desktop) ── -->
+  <div class="app-main-area" [class.with-sidebar]="sidebarVisible && !isMobile">
+
+    <!-- ── Top Navbar (PrimeNG Toolbar) ── -->
+    <p-toolbar class="top-navbar-toolbar">
+
+      <ng-template pTemplate="start">
+        <div class="navbar-left">
+          <!-- Toggler Button in Navbar to Show/Hide Sidebar -->
+          <p-button
+            [icon]="sidebarVisible ? 'pi pi-times' : 'pi pi-bars'"
+            [label]="sidebarVisible ? 'Hide Menu' : 'Menu'"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            [pTooltip]="sidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'"
+            styleClass="nav-toggle-btn"
+            (onClick)="toggleSidebar()" />
+
+          <!-- App Brand -->
+          <div class="app-logo" (click)="navigateTo('/dashboard')">
+            <i class="pi pi-prime"></i>
+            <span>MyApp</span>
+            <p-tag value="PrimeNG 19" severity="info" styleClass="ml-2" />
+          </div>
+        </div>
+      </ng-template>
+
+
+
+      <ng-template pTemplate="center">
+        <p-iconfield class="nav-search-field">
+          <p-inputicon styleClass="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            [(ngModel)]="navSearchText"
+            (keyup.enter)="onNavSearch()"
+            placeholder="Search products, orders..."
+            class="nav-search-input" />
+        </p-iconfield>
+      </ng-template>
+
+      <ng-template pTemplate="end">
+        <div class="navbar-right">
+
+          <!-- Dark Mode Toggle -->
+          <p-button
+            [icon]="isDarkMode ? 'pi pi-sun' : 'pi pi-moon'"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            [pTooltip]="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            (onClick)="toggleDarkMode()" />
+
+          <!-- Notification Bell with PrimeNG Badge and Popover -->
+          <div class="nav-icon-wrapper">
+            <p-button
+              icon="pi pi-bell"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              pTooltip="Notifications"
+              (onClick)="notifPopover.toggle($event)" />
+            <p-badge
+              *ngIf="unreadCount() > 0"
+              [value]="unreadCount()"
+              severity="danger"
+              styleClass="nav-badge-overlay" />
+          </div>
+
+          <!-- User Avatar -->
+          <div class="nav-avatar" (click)="navigateTo('/users')">
+            <p-avatar
+              label="A"
+              shape="circle"
+              styleClass="cursor-pointer" />
+            <span class="nav-username">Arjun</span>
+          </div>
+
+          <!-- Logout -->
+          <p-button
+            icon="pi pi-sign-out"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            pTooltip="Logout"
+            (onClick)="logout()" />
+
+        </div>
+      </ng-template>
+
+    </p-toolbar>
+
+    <!-- PrimeNG Notification Popover -->
+    <p-popover #notifPopover>
+      <div style="width: 320px; padding: 0.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="pi pi-bell"></i> Notifications
+          </span>
+          <p-badge *ngIf="unreadCount() > 0" [value]="unreadCount()" severity="danger" />
+        </div>
+
+        <div *ngIf="notifications().length === 0" style="text-align: center; color: var(--p-text-secondary-color); padding: 1.5rem 0; font-size: 0.85rem;">
+          No notifications yet.
+        </div>
+
+        <div style="max-height: 220px; overflow-y: auto;">
+          <div
+            *ngFor="let notif of notifications().slice(0, 5)"
+            style="padding: 0.5rem 0; border-bottom: 1px solid var(--p-content-border-color);">
+            <p style="margin: 0; font-size: 0.85rem; color: var(--p-text-color);">{{ notif.message }}</p>
+            <small style="color: var(--p-text-secondary-color); font-size: 0.75rem;">
+              <i class="pi pi-clock" style="font-size: 0.7rem;"></i> {{ notif.timestamp }}
+            </small>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; border-top: 1px solid var(--p-content-border-color); padding-top: 0.5rem;">
+          <p-button label="Mark read" [text]="true" size="small" (onClick)="markAllNotificationsRead(); notifPopover.hide()" />
+          <p-button label="View All" [text]="true" severity="info" size="small" (onClick)="navigateTo('/notifications'); notifPopover.hide()" />
+        </div>
+      </div>
+    </p-popover>
 
     <!-- ── Page Content ── -->
-    <main
-      class="app-content"
-      [class.content-expanded]="!sidebarVisible"
-      [class.content-with-sidebar]="sidebarVisible">
-
+    <main class="app-content">
       <router-outlet />
-
     </main>
 
   </div>
+
+</div>
+
 

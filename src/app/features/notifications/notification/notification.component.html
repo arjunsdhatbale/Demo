@@ -3,122 +3,447 @@
 
   <p-toast />
 
-  <p-card>
-
-    <!-- ── Header ── -->
+  <!-- ── Top Header Card ── -->
+  <p-card styleClass="header-card">
     <div class="page-header">
       <div class="header-left">
-        <i class="pi pi-bell" style="font-size:1.5rem"></i>
-        <span style="font-size:1.2rem; font-weight:600;">
-          Notification Center
-        </span>
-        <span class="unread-badge" *ngIf="unreadCount() > 0">
-          {{ unreadCount() }}
-        </span>
+        <div class="icon-circle">
+          <i class="pi pi-comments"></i>
+        </div>
+        <div>
+          <h2 class="header-title">Live WebSocket Communication Center</h2>
+          <p class="header-subtitle">
+            Real-time multi-user STOMP messaging connected to Spring Boot (port 8082)
+          </p>
+        </div>
       </div>
 
-      <div class="connection-status">
-        <span
-          class="status-dot"
-          [class.connected]="isConnected"
-          [class.disconnected]="!isConnected">
-        </span>
-        <span class="status-text">
-          {{ isConnected ? 'Connected ✅' : 'Disconnected ❌' }}
+      <div class="header-right">
+        <div class="connection-pill" [class.connected]="isConnected" [class.disconnected]="!isConnected">
+          <span class="status-dot"></span>
+          <span>{{ isConnected ? 'WebSocket Online' : 'WebSocket Offline' }}</span>
+        </div>
+
+        <span class="unread-pill" *ngIf="unreadCount() > 0">
+          <i class="pi pi-bell"></i> {{ unreadCount() }} New
         </span>
       </div>
     </div>
 
-    <p-divider />
+    <!-- ── Mode Selector Tabs ── -->
+    <div class="view-mode-bar">
+      <button
+        class="mode-btn"
+        [class.active]="activeView === 'dual'"
+        (click)="activeView = 'dual'">
+        <i class="pi pi-users"></i>
+        <span>2-User Split Chat (Side-by-Side)</span>
+        <span class="pill-badge">Recommended</span>
+      </button>
 
-    <!-- ── Send Section ── -->
-    <div class="send-section">
-      <h4>
-        <i class="pi pi-send"></i>
-        Send Notification
-      </h4>
+      <button
+        class="mode-btn"
+        [class.active]="activeView === 'single'"
+        (click)="activeView = 'single'">
+        <i class="pi pi-user"></i>
+        <span>Single User Chat (Multi-Tab Mode)</span>
+      </button>
 
-      <div class="send-input-row">
-        <input
-          pInputText
-          [(ngModel)]="messageInput"
-          placeholder="Type your message here..."
-          (keyup.enter)="sendMessage()"
-          [disabled]="!isConnected"
-          class="message-input" />
+      <button
+        class="mode-btn"
+        [class.active]="activeView === 'system'"
+        (click)="activeView = 'system'">
+        <i class="pi pi-bell"></i>
+        <span>System Broadcasts</span>
+      </button>
+    </div>
+  </p-card>
 
-        <p-button
-          label="Send"
-          icon="pi pi-send"
-          (onClick)="sendMessage()"
-          [disabled]="!isConnected || !messageInput.trim()" />
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 1. DUAL USER SPLIT VIEW (2 SEPARATE USER CHAT INTERFACES)  -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeView === 'dual'" class="dual-chat-wrapper">
+
+    <!-- Explanatory banner -->
+    <div class="info-banner">
+      <i class="pi pi-info-circle"></i>
+      <div>
+        <strong>Two-User Live Simulation:</strong>
+        User 1 (<strong>Arjun</strong>) and User 2 (<strong>Sarah</strong>) are both subscribed to the Spring Boot broker.
+        Type a message as User 1 and click <strong>Send</strong> — it transmits through Spring Boot via WebSocket and immediately appears in User 2's chat window in real-time!
       </div>
-
-      <small class="not-connected-msg" *ngIf="!isConnected">
-        <i class="pi pi-exclamation-triangle"></i>
-        WebSocket not connected. Make sure Spring Boot is running on port 8080.
-      </small>
+      <p-button
+        label="Clear Messages"
+        icon="pi pi-trash"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        (onClick)="clearChat()" />
     </div>
 
-    <p-divider />
+    <div class="dual-chat-grid">
 
-    <!-- ── List Header ── -->
-    <div class="list-header">
-      <h4>
-        <i class="pi pi-inbox"></i>
-        Received Notifications
-        <span class="count-label">({{ notifications().length }})</span>
-      </h4>
+      <!-- ─── LEFT: USER 1 (Arjun Dhatbale) ─── -->
+      <div class="chat-card user1-theme">
+        <!-- User 1 Header -->
+        <div class="chat-header">
+          <div class="user-meta">
+            <div class="avatar" [style.background-color]="user1.avatarColor">
+              {{ user1.initials }}
+            </div>
+            <div>
+              <div class="user-name">{{ user1.name }}</div>
+              <div class="user-subtitle">
+                <span class="role-tag admin-tag">{{ user1.role }}</span>
+                <span class="status-text">
+                  <span class="live-dot"></span> User 1 Session
+                </span>
+              </div>
+            </div>
+          </div>
+          <p-tag value="Port 8082" severity="info" />
+        </div>
 
-      <div class="list-actions" *ngIf="notifications().length > 0">
+        <!-- User 1 Message Stream -->
+        <div class="chat-messages" #chatScrollBox>
+          <div *ngIf="chatMessages().length === 0" class="chat-empty">
+            <i class="pi pi-comments"></i>
+            <p>No messages yet. Send a message below to start chatting!</p>
+          </div>
+
+          <div
+            *ngFor="let msg of chatMessages()"
+            class="msg-row"
+            [class.outgoing]="msg.senderId === user1.id"
+            [class.incoming]="msg.senderId !== user1.id">
+
+            <!-- Incoming message avatar -->
+            <div *ngIf="msg.senderId !== user1.id" class="msg-avatar" [style.background-color]="msg.avatarColor || '#10b981'">
+              {{ msg.senderName.charAt(0) }}
+            </div>
+
+            <div class="msg-bubble-container">
+              <div class="msg-sender" *ngIf="msg.senderId !== user1.id">
+                {{ msg.senderName }} <span class="role-tiny">({{ msg.senderRole || 'User' }})</span>
+              </div>
+
+              <div class="msg-bubble" [class.self-bubble]="msg.senderId === user1.id">
+                {{ msg.content }}
+              </div>
+
+              <div class="msg-time">
+                {{ msg.timestamp }}
+                <i *ngIf="msg.senderId === user1.id" class="pi pi-check-circle sent-check"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User 1 Quick Replies -->
+        <div class="quick-replies">
+          <span class="quick-label">Quick:</span>
+          <button class="chip-btn" (click)="sendQuick(1, '👋 Hello Sarah! Testing WebSocket.')">👋 Hello!</button>
+          <button class="chip-btn" (click)="sendQuick(1, '📦 Did you check product stock?')">📦 Product stock?</button>
+          <button class="chip-btn" (click)="sendQuick(1, '🚀 Changes deployed to Spring Boot!')">🚀 Deployed!</button>
+        </div>
+
+        <!-- User 1 Input Bar -->
+        <div class="chat-input-bar">
+          <input
+            pInputText
+            [(ngModel)]="user1Input"
+            placeholder="Type message as Arjun..."
+            (keyup.enter)="sendUser1Message()"
+            class="chat-input" />
+
+          <p-button
+            label="Send"
+            icon="pi pi-send"
+            (onClick)="sendUser1Message()"
+            [disabled]="!user1Input.trim()" />
+        </div>
+      </div>
+
+      <!-- ─── RIGHT: USER 2 (Sarah Connor) ─── -->
+      <div class="chat-card user2-theme">
+        <!-- User 2 Header -->
+        <div class="chat-header">
+          <div class="user-meta">
+            <div class="avatar" [style.background-color]="user2.avatarColor">
+              {{ user2.initials }}
+            </div>
+            <div>
+              <div class="user-name">{{ user2.name }}</div>
+              <div class="user-subtitle">
+                <span class="role-tag manager-tag">{{ user2.role }}</span>
+                <span class="status-text">
+                  <span class="live-dot"></span> User 2 Session
+                </span>
+              </div>
+            </div>
+          </div>
+          <p-tag value="Port 8082" severity="success" />
+        </div>
+
+        <!-- User 2 Message Stream -->
+        <div class="chat-messages" #chatScrollBox>
+          <div *ngIf="chatMessages().length === 0" class="chat-empty">
+            <i class="pi pi-comments"></i>
+            <p>No messages yet. Send a message below to start chatting!</p>
+          </div>
+
+          <div
+            *ngFor="let msg of chatMessages()"
+            class="msg-row"
+            [class.outgoing]="msg.senderId === user2.id"
+            [class.incoming]="msg.senderId !== user2.id">
+
+            <!-- Incoming message avatar -->
+            <div *ngIf="msg.senderId !== user2.id" class="msg-avatar" [style.background-color]="msg.avatarColor || '#3b82f6'">
+              {{ msg.senderName.charAt(0) }}
+            </div>
+
+            <div class="msg-bubble-container">
+              <div class="msg-sender" *ngIf="msg.senderId !== user2.id">
+                {{ msg.senderName }} <span class="role-tiny">({{ msg.senderRole || 'User' }})</span>
+              </div>
+
+              <div class="msg-bubble" [class.self-bubble-user2]="msg.senderId === user2.id">
+                {{ msg.content }}
+              </div>
+
+              <div class="msg-time">
+                {{ msg.timestamp }}
+                <i *ngIf="msg.senderId === user2.id" class="pi pi-check-circle sent-check"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User 2 Quick Replies -->
+        <div class="quick-replies">
+          <span class="quick-label">Quick:</span>
+          <button class="chip-btn" (click)="sendQuick(2, '👋 Hi Arjun! I received your message live.')">👋 Got it!</button>
+          <button class="chip-btn" (click)="sendQuick(2, '📊 Checked dashboard, all 5 products look good.')">📊 Stock is good!</button>
+          <button class="chip-btn" (click)="sendQuick(2, '✅ Confirmed! WebSocket is working 100%.')">✅ Confirmed!</button>
+        </div>
+
+        <!-- User 2 Input Bar -->
+        <div class="chat-input-bar">
+          <input
+            pInputText
+            [(ngModel)]="user2Input"
+            placeholder="Type message as Sarah..."
+            (keyup.enter)="sendUser2Message()"
+            class="chat-input" />
+
+          <p-button
+            label="Send"
+            icon="pi pi-send"
+            severity="success"
+            (onClick)="sendUser2Message()"
+            [disabled]="!user2Input.trim()" />
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 2. SINGLE USER VIEW (FOR TESTING ACROSS MULTIPLE TABS)     -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeView === 'single'" class="single-user-wrapper">
+    <p-card styleClass="single-chat-card">
+
+      <!-- Persona Selector Header -->
+      <div class="single-persona-bar">
+        <div class="persona-selector">
+          <span class="persona-label">Active User Persona for this Tab:</span>
+          <div class="persona-options">
+            <button
+              class="persona-toggle-btn"
+              [class.selected]="activeSingleUserId === 'user_1'"
+              (click)="activeSingleUserId = 'user_1'">
+              <span class="avatar-mini" [style.background]="user1.avatarColor">{{ user1.initials }}</span>
+              <span>{{ user1.name }} ({{ user1.role }})</span>
+            </button>
+
+            <button
+              class="persona-toggle-btn"
+              [class.selected]="activeSingleUserId === 'user_2'"
+              (click)="activeSingleUserId = 'user_2'">
+              <span class="avatar-mini" [style.background]="user2.avatarColor">{{ user2.initials }}</span>
+              <span>{{ user2.name }} ({{ user2.role }})</span>
+            </button>
+          </div>
+        </div>
+
         <p-button
-          label="Mark all read"
-          icon="pi pi-check"
+          label="Clear Chat"
+          icon="pi pi-trash"
           severity="secondary"
           [text]="true"
-          (onClick)="markAllRead()" />
+          size="small"
+          (onClick)="clearChat()" />
+      </div>
+
+      <div class="multi-tab-hint">
+        <i class="pi pi-external-link"></i>
+        <span>
+          <strong>Multi-Browser/Tab Test:</strong> Open <code>http://localhost:4200/notifications</code> in a 2nd browser tab,
+          select <strong>{{ activeSingleUserId === 'user_1' ? user2.name : user1.name }}</strong> in that tab, and chat in real-time between tabs!
+        </span>
+      </div>
+
+      <p-divider />
+
+      <!-- Single Chat Messages Box -->
+      <div class="single-chat-messages" #chatScrollBox>
+        <div *ngIf="chatMessages().length === 0" class="chat-empty">
+          <i class="pi pi-comments"></i>
+          <p>No messages yet. Send a message to test!</p>
+        </div>
+
+        <div
+          *ngFor="let msg of chatMessages()"
+          class="msg-row"
+          [class.outgoing]="msg.senderId === activeSingleUserId"
+          [class.incoming]="msg.senderId !== activeSingleUserId">
+
+          <div *ngIf="msg.senderId !== activeSingleUserId" class="msg-avatar" [style.background-color]="msg.avatarColor || '#6366f1'">
+            {{ msg.senderName.charAt(0) }}
+          </div>
+
+          <div class="msg-bubble-container">
+            <div class="msg-sender" *ngIf="msg.senderId !== activeSingleUserId">
+              {{ msg.senderName }} <span class="role-tiny">({{ msg.senderRole || 'User' }})</span>
+            </div>
+
+            <div class="msg-bubble" [class.self-bubble]="msg.senderId === activeSingleUserId">
+              {{ msg.content }}
+            </div>
+
+            <div class="msg-time">
+              {{ msg.timestamp }}
+              <i *ngIf="msg.senderId === activeSingleUserId" class="pi pi-check-circle sent-check"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p-divider />
+
+      <!-- Input Bar -->
+      <div class="chat-input-bar">
+        <input
+          pInputText
+          [(ngModel)]="singleUserInput"
+          [placeholder]="'Type message as ' + (activeSingleUserId === 'user_1' ? user1.name : user2.name) + '...'"
+          (keyup.enter)="sendSingleUserMessage()"
+          class="chat-input" />
+
         <p-button
-          label="Clear all"
-          icon="pi pi-trash"
-          severity="danger"
-          [text]="true"
-          (onClick)="clearAll()" />
+          label="Send Message"
+          icon="pi pi-send"
+          (onClick)="sendSingleUserMessage()"
+          [disabled]="!singleUserInput.trim()" />
       </div>
-    </div>
+    </p-card>
+  </div>
 
-    <!-- ── Notification Items ── -->
-    <div class="notification-list">
 
-      <div
-        *ngFor="let notif of notifications(); let i = index"
-        class="notification-item"
-        [class.unread]="i < unreadCount()">
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 3. SYSTEM BROADCAST NOTIFICATIONS LOG                       -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeView === 'system'" class="system-wrapper">
+    <p-card>
+      <!-- Send Section -->
+      <div class="send-section">
+        <h4>
+          <i class="pi pi-megaphone"></i>
+          Broadcast System Notification
+        </h4>
 
-        <div class="notif-icon">
-          <i class="pi pi-bell"></i>
+        <div class="send-input-row">
+          <input
+            pInputText
+            [(ngModel)]="systemMessageInput"
+            placeholder="Type a broadcast notification..."
+            (keyup.enter)="sendSystemMessage()"
+            class="message-input" />
+
+          <p-button
+            label="Broadcast"
+            icon="pi pi-send"
+            (onClick)="sendSystemMessage()"
+            [disabled]="!systemMessageInput.trim()" />
         </div>
 
-        <div class="notif-content">
-          <p class="notif-message">{{ notif.message }}</p>
-          <span class="notif-time">
-            <i class="pi pi-clock"></i>
-            {{ notif.timestamp }}
-          </span>
+        <div class="quick-toast-row">
+          <span class="quick-toast-label">Quick Toast Alerts:</span>
+          <p-button label="Success" icon="pi pi-check" severity="success" [outlined]="true" size="small" (onClick)="sendQuickToast('success', 'Order Placed', 'Order #1043 created successfully.')" />
+          <p-button label="Info" icon="pi pi-info-circle" severity="info" [outlined]="true" size="small" (onClick)="sendQuickToast('info', 'System Sync', 'Spring Boot 21 synchronized.')" />
+          <p-button label="Warning" icon="pi pi-exclamation-triangle" severity="warn" [outlined]="true" size="small" (onClick)="sendQuickToast('warn', 'Low Inventory', 'Logitech Mouse stock is low.')" />
+          <p-button label="Error" icon="pi pi-times-circle" severity="danger" [outlined]="true" size="small" (onClick)="sendQuickToast('error', 'Auth Alert', 'Unauthorized attempt blocked.')" />
+        </div>
+      </div>
+
+      <p-divider />
+
+      <!-- List Header -->
+      <div class="list-header">
+        <h4>
+          <i class="pi pi-inbox"></i>
+          Received System Notifications
+          <span class="count-label">({{ notifications().length }})</span>
+        </h4>
+
+        <div class="list-actions" *ngIf="notifications().length > 0">
+          <p-button
+            label="Mark all read"
+            icon="pi pi-check"
+            severity="secondary"
+            [text]="true"
+            (onClick)="markAllRead()" />
+          <p-button
+            label="Clear all"
+            icon="pi pi-trash"
+            severity="danger"
+            [text]="true"
+            (onClick)="clearAll()" />
+        </div>
+      </div>
+
+      <!-- Notification Items -->
+      <div class="notification-list">
+        <div
+          *ngFor="let notif of notifications(); let i = index"
+          class="notification-item"
+          [class.unread]="i < unreadCount()">
+
+          <div class="notif-icon">
+            <i class="pi pi-bell"></i>
+          </div>
+
+          <div class="notif-content">
+            <p class="notif-message">{{ notif.message }}</p>
+            <span class="notif-time">
+              <i class="pi pi-clock"></i>
+              {{ notif.timestamp }}
+            </span>
+          </div>
+
+          <span class="new-badge" *ngIf="i < unreadCount()">NEW</span>
         </div>
 
-        <span class="new-badge" *ngIf="i < unreadCount()">NEW</span>
-
+        <div class="empty-state" *ngIf="notifications().length === 0">
+          <i class="pi pi-bell-slash"></i>
+          <p>No notifications yet.</p>
+        </div>
       </div>
-
-      <!-- ── Empty State ── -->
-      <div class="empty-state" *ngIf="notifications().length === 0">
-        <i class="pi pi-bell-slash"></i>
-        <p>No notifications yet.</p>
-        <small>Type a message above and click Send to test.</small>
-      </div>
-
-    </div>
-
-  </p-card>
+    </p-card>
+  </div>
 
 </div>

@@ -1,119 +1,219 @@
-<p>dashboard works!</p>
-<!-- src/app/layout/main-layout/main-layout.component.html -->
-<div class="app-layout">
+<!-- src/app/features/dashboard/dashboard.component.html -->
+<div class="dashboard-container">
 
-  <!-- ── Top Navbar ── -->
-  <header class="top-navbar">
-
-    <div class="navbar-left">
-      <!-- Hamburger toggle -->
-      <p-button
-        icon="pi pi-bars"
-        [text]="true"
-        [rounded]="true"
-        severity="secondary"
-        (onClick)="toggleSidebar()" />
-
-      <!-- App Logo -->
-      <div class="app-logo" (click)="navigateTo('/dashboard')">
-        <i class="pi pi-prime"></i>
-        <span>MyApp</span>
-      </div>
+  <!-- Welcome / Page Header -->
+  <div class="dashboard-header">
+    <div class="header-title">
+      <h2>
+        <i class="pi pi-th-large" style="color: var(--p-primary-color);"></i>
+        PrimeNG Component Dashboard
+      </h2>
+      <p class="header-subtitle">
+        Angular 19 + PrimeNG 19 showcase featuring Data Table, Navbar Toolbar, and Notifications
+      </p>
     </div>
-
-    <div class="navbar-right">
-
-      <!-- Notification Bell -->
-      <div class="nav-icon-btn" (click)="navigateTo('/notifications')">
-        <i class="pi pi-bell"></i>
-        <span class="nav-badge" *ngIf="unreadCount() > 0">
-          {{ unreadCount() }}
-        </span>
-      </div>
-
-      <!-- Chat -->
-      <div class="nav-icon-btn" (click)="navigateTo('/chat')">
-        <i class="pi pi-comments"></i>
-      </div>
-
-      <!-- User Avatar -->
-      <div class="nav-avatar">
-        <p-avatar
-          label="A"
-          shape="circle"
-          styleClass="cursor-pointer" />
-        <span class="nav-username">Arjun</span>
-      </div>
-
-      <!-- Logout -->
+    <div class="header-actions">
       <p-button
-        icon="pi pi-sign-out"
-        [text]="true"
-        [rounded]="true"
-        severity="secondary"
-        pTooltip="Logout"
-        (onClick)="logout()" />
-
+        label="View Products"
+        icon="pi pi-box"
+        [outlined]="true"
+        (onClick)="navigateTo('/products')" />
+      <p-button
+        label="Notification Center"
+        icon="pi pi-bell"
+        (onClick)="navigateTo('/notifications')" />
     </div>
-  </header>
+  </div>
 
-  <!-- ── Main Body ── -->
-  <div class="app-body">
+  <!-- ── 1. Stats Metric Cards (PrimeNG p-card) ── -->
+  <div class="stats-grid">
 
-    <!-- ── Sidebar ── -->
-    <aside
-      class="app-sidebar"
-      [class.sidebar-open]="sidebarVisible"
-      [class.sidebar-closed]="!sidebarVisible">
-
-      <!-- Sidebar Menu -->
-      <nav class="sidebar-nav">
-
-        <div
-          *ngFor="let item of menuItems"
-          class="nav-item"
-          [class.active]="isActive(item.route)"
-          (click)="navigateTo(item.route)">
-
-          <i [class]="item.icon"></i>
-
-          <span class="nav-label">{{ item.label }}</span>
-
-          <!-- Badge for notifications -->
-          <span
-            class="nav-badge-inline"
-            *ngIf="item.badge && unreadCount() > 0">
-            {{ unreadCount() }}
-          </span>
-
+    <!-- Card: Products -->
+    <p-card styleClass="stat-card stat-products" (click)="navigateTo('/products')">
+      <div class="stat-content">
+        <div class="stat-info">
+          <span class="stat-label">Total Products</span>
+          <h3 class="stat-number">{{ totalProducts() }}</h3>
+          <span class="stat-badge"><i class="pi pi-arrow-up"></i> In Inventory</span>
         </div>
-
-      </nav>
-
-      <!-- Sidebar Footer -->
-      <div class="sidebar-footer">
-        <p-divider />
-        <div class="footer-user">
-          <p-avatar label="A" shape="circle" size="normal" />
-          <div class="footer-user-info" *ngIf="sidebarVisible">
-            <span class="footer-name">Arjun Dhatbale</span>
-            <span class="footer-role">Administrator</span>
-          </div>
+        <div class="stat-icon-box">
+          <i class="pi pi-box"></i>
         </div>
       </div>
+    </p-card>
 
-    </aside>
+    <!-- Card: Users -->
+    <p-card styleClass="stat-card stat-users" (click)="navigateTo('/users')">
+      <div class="stat-content">
+        <div class="stat-info">
+          <span class="stat-label">Registered Users</span>
+          <h3 class="stat-number">{{ totalUsers() }}</h3>
+          <span class="stat-badge"><i class="pi pi-users"></i> Active Accounts</span>
+        </div>
+        <div class="stat-icon-box">
+          <i class="pi pi-user"></i>
+        </div>
+      </div>
+    </p-card>
 
-    <!-- ── Page Content ── -->
-    <main
-      class="app-content"
-      [class.content-expanded]="!sidebarVisible"
-      [class.content-with-sidebar]="sidebarVisible">
+    <!-- Card: Notifications -->
+    <p-card styleClass="stat-card stat-notif" (click)="navigateTo('/notifications')">
+      <div class="stat-content">
+        <div class="stat-info">
+          <span class="stat-label">Unread Notifications</span>
+          <h3 class="stat-number">{{ unreadCount() }}</h3>
+          <span class="stat-badge"><i class="pi pi-bell"></i> Live Alerts</span>
+        </div>
+        <div class="stat-icon-box">
+          <i class="pi pi-bell"></i>
+        </div>
+      </div>
+    </p-card>
 
-      <router-outlet />
-
-    </main>
+    <!-- Card: PrimeNG Version -->
+    <p-card styleClass="stat-card stat-system">
+      <div class="stat-content">
+        <div class="stat-info">
+          <span class="stat-label">UI Framework</span>
+          <h3 class="stat-number" style="font-size: 1.3rem;">PrimeNG 19</h3>
+          <span class="stat-badge"><i class="pi pi-palette"></i> Aura Theme</span>
+        </div>
+        <div class="stat-icon-box">
+          <i class="pi pi-prime"></i>
+        </div>
+      </div>
+    </p-card>
 
   </div>
 
-</div>
+  <!-- ── 2. Interactive PrimeNG Notifications Demo (Toast + MessageService) ── -->
+  <p-card styleClass="dashboard-section-card">
+    <div class="card-header-bar">
+      <div>
+        <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="pi pi-bell" style="color: var(--p-primary-color);"></i>
+          PrimeNG Toast & Notification System
+        </h3>
+        <p style="margin: 0.25rem 0 0; font-size: 0.85rem; color: var(--p-text-secondary-color);">
+          Click the buttons below to trigger real-time PrimeNG Toasts and update the Navbar bell badge
+        </p>
+      </div>
+      <p-tag [value]="unreadCount() + ' Unread'" severity="warn" />
+    </div>
+
+    <p-divider />
+
+    <div class="toast-demo-row">
+      <p-button
+        label="Success Toast"
+        icon="pi pi-check-circle"
+        severity="success"
+        (onClick)="triggerToast('success', 'Operation Successful', 'Your request completed without errors!')" />
+
+      <p-button
+        label="Info Toast"
+        icon="pi pi-info-circle"
+        severity="info"
+        (onClick)="triggerToast('info', 'New Update Available', 'PrimeNG 19 features are ready to explore.')" />
+
+      <p-button
+        label="Warning Toast"
+        icon="pi pi-exclamation-triangle"
+        severity="warn"
+        (onClick)="triggerToast('warn', 'Low Stock Alert', 'Items in inventory are below threshold.')" />
+
+      <p-button
+        label="Error Toast"
+        icon="pi pi-times-circle"
+        severity="danger"
+        (onClick)="triggerToast('error', 'Service Error', 'Could not reach server endpoint.')" />
+    </div>
+
+    <div class="quick-send-row">
+      <input
+        pInputText
+        [(ngModel)]="customMessage"
+        placeholder="Type a custom notification message..."
+        (keyup.enter)="sendCustomNotification()"
+        class="custom-message-input" />
+
+      <p-button
+        label="Send Alert"
+        icon="pi pi-send"
+        (onClick)="sendCustomNotification()"
+        [disabled]="!customMessage.trim()" />
+    </div>
+  </p-card>
+
+  <!-- ── 3. PrimeNG Table Showcase (p-table) ── -->
+  <p-card styleClass="dashboard-section-card">
+    <div class="card-header-bar">
+      <div>
+        <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="pi pi-table" style="color: var(--p-primary-color);"></i>
+          PrimeNG Data Table (p-table) Preview
+        </h3>
+        <p style="margin: 0.25rem 0 0; font-size: 0.85rem; color: var(--p-text-secondary-color);">
+          Showcasing sortable columns, responsive templates, status badges, and action buttons
+        </p>
+      </div>
+
+      <p-button
+        label="Full Product Table"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        [text]="true"
+        (onClick)="navigateTo('/products')" />
+    </div>
+
+    <p-divider />
+
+    <p-table
+      [value]="sampleProducts"
+      [paginator]="true"
+      [rows]="4"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      styleClass="p-datatable-striped p-datatable-sm">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="id" style="width: 10%">ID <p-sortIcon field="id" /></th>
+          <th pSortableColumn="name">Product Name <p-sortIcon field="name" /></th>
+          <th pSortableColumn="category" style="width: 20%">Category <p-sortIcon field="category" /></th>
+          <th pSortableColumn="price" style="width: 15%">Price <p-sortIcon field="price" /></th>
+          <th pSortableColumn="stock" style="width: 12%">Stock <p-sortIcon field="stock" /></th>
+          <th pSortableColumn="status" style="width: 15%">Status <p-sortIcon field="status" /></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-product>
+        <tr>
+          <td><span style="font-weight: 600;">#{{ product.id }}</span></td>
+          <td>
+            <span style="font-weight: 500;">{{ product.name }}</span>
+          </td>
+          <td>
+            <span class="category-pill">{{ product.category }}</span>
+          </td>
+          <td>₹ {{ product.price | number: '1.2-2' }}</td>
+          <td>
+            <span [style.color]="product.stock === 0 ? 'var(--p-red-500)' : 'inherit'">
+              {{ product.stock }} units
+            </span>
+          </td>
+          <td>
+            <p-tag [value]="product.status" [severity]="getStatusSeverity(product.status)" />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center">No products available.</td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </p-card>
+
+</div>

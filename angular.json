@@ -37,7 +37,8 @@
             "scripts": [],
             "allowedCommonJsDependencies": [
               "@stomp/stompjs",
-              "sockjs-client"
+              "sockjs-client",
+              "xlsx"
             ],
             "outputMode": "static",
             "security": {

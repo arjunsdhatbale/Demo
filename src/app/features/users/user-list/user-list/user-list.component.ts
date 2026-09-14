@@ -122,6 +122,10 @@ export class UserListComponent implements OnInit {
 
 
 
+  navigateToBulkUpload(): void {
+    this.router.navigate(['/users/bulk-upload']);
+  }
+
   navigateToCreate(): void {
     this.router.navigate(['/users/create']);
   }

@@ -197,6 +197,10 @@ onSearch(): void {
     }
   }
 
+  navigateToBulkUpload(): void {
+    this.router.navigate(['/products/bulk-upload']);
+  }
+
   navigateToCreate(): void {
     this.router.navigate(['/products/create']);
   }

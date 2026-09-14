@@ -8,6 +8,11 @@ export const userRoutes: Routes = [
         import('./user-list/user-list/user-list.component').then(m => m.UserListComponent)
   },
   {
+    path: 'bulk-upload',
+    loadComponent: () =>
+      import('./user-bulk-upload/user-bulk-upload.component').then(m => m.UserBulkUploadComponent)
+  },
+  {
     path: 'create',
     loadComponent: () =>
       import('./user-form/user-form/user-form.component').then(m => m.UserFormComponent)

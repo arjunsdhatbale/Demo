@@ -55,7 +55,9 @@ export class MainLayoutComponent implements OnInit {
   menuItems = [
     { label: 'Dashboard', route: '/dashboard', icon: 'pi pi-home' },
     { label: 'Products', route: '/products', icon: 'pi pi-box' },
+    { label: 'Product Upload', route: '/products/bulk-upload', icon: 'pi pi-upload' },
     { label: 'Users', route: '/users', icon: 'pi pi-users' },
+    { label: 'User Upload', route: '/users/bulk-upload', icon: 'pi pi-file-excel' },
     { label: 'Notifications', route: '/notifications', icon: 'pi pi-bell', badge: true }
   ];
 

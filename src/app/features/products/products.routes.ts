@@ -8,6 +8,11 @@ export const productRoutes: Routes = [
       import('./product-list/product-list.component').then(m => m.ProductListComponent)
   },
   {
+    path: 'bulk-upload',
+    loadComponent: () =>
+      import('./product-bulk-upload/product-bulk-upload.component').then(m => m.ProductBulkUploadComponent)
+  },
+  {
     path: 'create',
     loadComponent: () =>
       import('./product-form/product-form.component').then(m => m.ProductFormComponent)

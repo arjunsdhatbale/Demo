@@ -13,10 +13,18 @@
       </h2>
       <span class="total-badge">{{ products().length }} Products</span>
     </div>
-    <p-button
-      label="Add Product"
-      icon="pi pi-plus"
-      (onClick)="navigateToCreate()" />
+    <div class="header-actions" style="display: flex; gap: 0.75rem; align-items: center;">
+      <p-button
+        label="Bulk Upload (Excel)"
+        icon="pi pi-file-excel"
+        severity="success"
+        [outlined]="true"
+        (onClick)="navigateToBulkUpload()" />
+      <p-button
+        label="Add Product"
+        icon="pi pi-plus"
+        (onClick)="navigateToCreate()" />
+    </div>
   </div>
 
   <!-- Filters -->

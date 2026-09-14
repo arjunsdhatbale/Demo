@@ -1,0 +1,275 @@
+<!-- src/app/features/products/product-bulk-upload/product-bulk-upload.component.html -->
+<div class="bulk-upload-container">
+
+  <p-toast />
+
+  <!-- ── Header ── -->
+  <div class="page-header">
+    <div class="header-left">
+      <p-button
+        icon="pi pi-arrow-left"
+        [text]="true"
+        [rounded]="true"
+        (onClick)="navigateBack()" />
+      <div>
+        <h2>Bulk Product Upload (Excel)</h2>
+        <p class="subtitle">Import products in bulk by uploading an Excel spreadsheet (.xlsx)</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <p-button
+        label="Download Sample Template"
+        icon="pi pi-download"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="downloadSample()" />
+    </div>
+  </div>
+
+  <div class="upload-grid">
+
+    <!-- ── Left Column: Upload & Instructions ── -->
+    <div class="left-col">
+
+      <!-- Upload Zone Card -->
+      <p-card styleClass="upload-card">
+        <h3><i class="pi pi-cloud-upload"></i> Upload Excel File</h3>
+        <p class="instruction-text">
+          Upload an <strong>.xlsx</strong> file containing product records. The backend processes records asynchronously in batches of 1,000 rows.
+        </p>
+
+        <!-- Dropzone -->
+        <div
+          class="dropzone"
+          [class.dragging]="isDragging"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onFileDrop($event)"
+          (click)="fileInput.click()">
+
+          <input
+            #fileInput
+            type="file"
+            accept=".xlsx"
+            (change)="onFileSelected($event)"
+            style="display: none;" />
+
+          <i class="pi pi-file-excel drop-icon"></i>
+          <h4>Drag & Drop your Excel (.xlsx) file here</h4>
+          <p>or <span class="browse-link">browse from your computer</span></p>
+          <small class="format-note">Supported format: Microsoft Excel (.xlsx)</small>
+        </div>
+
+        <!-- Selected File Preview -->
+        <div *ngIf="selectedFile" class="file-preview-bar">
+          <div class="file-info">
+            <i class="pi pi-file-excel file-icon"></i>
+            <div>
+              <div class="file-name">{{ selectedFile.name }}</div>
+              <div class="file-size">{{ (selectedFile.size / 1024).toFixed(1) }} KB</div>
+            </div>
+          </div>
+
+          <div class="file-actions">
+            <p-button
+              *ngIf="!uploading && !jobId"
+              icon="pi pi-times"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              (onClick)="removeFile()" />
+
+            <p-button
+              *ngIf="!jobId"
+              label="Start Bulk Upload"
+              icon="pi pi-upload"
+              severity="primary"
+              [loading]="uploading"
+              (onClick)="startUpload()" />
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Excel Template Guide -->
+      <p-card styleClass="guide-card">
+        <h3><i class="pi pi-info-circle"></i> Expected Excel Columns</h3>
+        <p class="guide-intro">Your spreadsheet must have the following header row (case-insensitive):</p>
+
+        <div class="columns-table-wrapper">
+          <table class="columns-table">
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Required?</th>
+                <th>Validation Rules</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>name</code></td>
+                <td><span class="badge-req">Required</span></td>
+                <td>Product name, must be unique across system</td>
+              </tr>
+              <tr>
+                <td><code>price</code></td>
+                <td><span class="badge-req">Required</span></td>
+                <td>Numeric value greater than 0 (e.g. 1499.00)</td>
+              </tr>
+              <tr>
+                <td><code>stock</code></td>
+                <td><span class="badge-req">Required</span></td>
+                <td>Integer value greater than or equal to 0</td>
+              </tr>
+              <tr>
+                <td><code>category</code></td>
+                <td><span class="badge-req">Required</span></td>
+                <td>Category name (e.g. Electronics, Furniture)</td>
+              </tr>
+              <tr>
+                <td><code>description</code></td>
+                <td><span class="badge-opt">Optional</span></td>
+                <td>Maximum 1000 characters</td>
+              </tr>
+              <tr>
+                <td><code>imageUrl</code></td>
+                <td><span class="badge-opt">Optional</span></td>
+                <td>Valid URL to product photo</td>
+              </tr>
+              <tr>
+                <td><code>status</code></td>
+                <td><span class="badge-opt">Optional</span></td>
+                <td><code>ACTIVE</code>, <code>INACTIVE</code>, or <code>OUT_OF_STOCK</code> (default: ACTIVE)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </p-card>
+
+    </div>
+
+    <!-- ── Right Column: Live Status & Error Reporting ── -->
+    <div class="right-col">
+
+      <!-- Job Status & Progress Card -->
+      <p-card styleClass="status-card" *ngIf="jobId">
+        <div class="status-header">
+          <div>
+            <h3><i class="pi pi-spin pi-cog" *ngIf="uploading"></i> Processing Job</h3>
+            <span class="job-id-text">Job ID: <code>{{ jobId }}</code></span>
+          </div>
+
+          <p-tag
+            [value]="jobStatus?.status || (uploading ? 'PROCESSING' : 'PENDING')"
+            [severity]="getStatusSeverity(jobStatus?.status)" />
+        </div>
+
+        <p-divider />
+
+        <!-- Animated Progress Bar -->
+        <div class="progress-section">
+          <div class="progress-labels">
+            <span>Overall Progress</span>
+            <span class="progress-num">{{ progressPercent }}%</span>
+          </div>
+          <p-progressBar [value]="progressPercent" [showValue]="false" />
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-box total">
+            <span class="metric-label">Total Rows</span>
+            <span class="metric-val">{{ jobStatus?.totalRows || 0 }}</span>
+          </div>
+
+          <div class="metric-box processed">
+            <span class="metric-label">Processed</span>
+            <span class="metric-val">{{ jobStatus?.processedRows || 0 }}</span>
+          </div>
+
+          <div class="metric-box success">
+            <span class="metric-label">Successful</span>
+            <span class="metric-val">{{ jobStatus?.successfulRows || 0 }}</span>
+          </div>
+
+          <div class="metric-box failed">
+            <span class="metric-label">Failed</span>
+            <span class="metric-val">{{ jobStatus?.failedRows || 0 }}</span>
+          </div>
+        </div>
+
+        <!-- Completion Actions -->
+        <div *ngIf="jobStatus?.status === 'COMPLETED'" class="completion-banner">
+          <i class="pi pi-check-circle" style="color: #22c55e; font-size: 1.5rem;"></i>
+          <div>
+            <strong>Processing Completed!</strong>
+            <p>{{ jobStatus?.successfulRows }} product(s) successfully imported into database.</p>
+          </div>
+          <p-button
+            label="View in Products Table"
+            icon="pi pi-box"
+            severity="success"
+            (onClick)="navigateBack()" />
+        </div>
+
+        <div *ngIf="jobStatus?.status === 'FAILED'" class="error-banner">
+          <i class="pi pi-times-circle" style="color: #ef4444; font-size: 1.5rem;"></i>
+          <div>
+            <strong>Processing Failed</strong>
+            <p>{{ jobStatus?.errorMessage || 'An error occurred while processing product batches.' }}</p>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Failed Rows Table -->
+      <p-card styleClass="failed-card" *ngIf="failedRows.length > 0">
+        <div class="failed-header">
+          <h3 class="failed-title">
+            <i class="pi pi-exclamation-triangle"></i>
+            Validation Failures ({{ failedRows.length }})
+          </h3>
+          <small class="failed-sub">The following rows were rejected and not inserted into the database:</small>
+        </div>
+
+        <p-table
+          [value]="failedRows"
+          [paginator]="true"
+          [rows]="5"
+          styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 80px;">Excel Row</th>
+              <th>Product / Identifier</th>
+              <th>Validation Error / Reason</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-err>
+            <tr>
+              <td>
+                <span class="row-num-badge">Row {{ err.rowNumber }}</span>
+              </td>
+              <td><code>{{ err.identifier || err.email || '(Empty)' }}</code></td>
+              <td class="error-reason-cell">
+                <i class="pi pi-times text-danger"></i>
+                <span>{{ err.reason }}</span>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+
+      <!-- Placeholder when not uploaded yet -->
+      <p-card styleClass="placeholder-card" *ngIf="!jobId">
+        <div class="placeholder-content">
+          <i class="pi pi-chart-bar"></i>
+          <h4>No Active Upload</h4>
+          <p>Select and upload an Excel file on the left to see live batch progress and error diagnostics.</p>
+        </div>
+      </p-card>
+
+    </div>
+
+  </div>
+
+</div>

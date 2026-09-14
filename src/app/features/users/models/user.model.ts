@@ -26,3 +26,28 @@ export interface ApiResponse<T> {
   data: T;
   timestamp: string;
 }
+
+export interface UploadResponse {
+  jobId: string;
+  message: string;
+  statusUrl: string;
+}
+
+export interface JobStatusResponse {
+  jobId: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  totalRows: number;
+  processedRows: number;
+  successfulRows: number;
+  failedRows: number;
+  errorMessage?: string;
+  createdAt?: string;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export interface RowError {
+  rowNumber: number;
+  email: string;
+  reason: string;
+}

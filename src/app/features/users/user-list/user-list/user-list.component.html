@@ -6,10 +6,18 @@
 
   <div class="page-header">
     <h2>User Management</h2>
-    <p-button
-      label="Add User"
-      icon="pi pi-plus"
-      (onClick)="navigateToCreate()" />
+    <div class="header-actions">
+      <p-button
+        label="Bulk Upload (Excel)"
+        icon="pi pi-file-excel"
+        severity="success"
+        [outlined]="true"
+        (onClick)="navigateToBulkUpload()" />
+      <p-button
+        label="Add User"
+        icon="pi pi-plus"
+        (onClick)="navigateToCreate()" />
+    </div>
   </div>
   
 

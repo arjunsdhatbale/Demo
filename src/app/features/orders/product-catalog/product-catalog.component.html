@@ -1,0 +1,189 @@
+<div class="catalog-container">
+  <p-toast />
+
+  <!-- ── Catalog Header ── -->
+  <div class="catalog-header">
+    <div class="header-left">
+      <div class="catalog-title-wrap">
+        <h2>
+          <i class="pi pi-shopping-bag"></i>
+          Product Storefront
+        </h2>
+        <p class="subtitle">Browse admin-curated products, add to your cart, or buy immediately</p>
+      </div>
+      <span class="total-badge">{{ filteredProducts().length }} Items Available</span>
+    </div>
+
+    <div class="header-actions">
+      <p-button
+        label="My Orders"
+        icon="pi pi-receipt"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="navigateToOrders()" />
+
+      <p-button
+        label="View Cart"
+        icon="pi pi-shopping-cart"
+        severity="primary"
+        [badge]="cartService.totalItems() > 0 ? (cartService.totalItems() + '') : undefined"
+        badgeSeverity="danger"
+        (onClick)="cartService.openDrawer()" />
+    </div>
+  </div>
+
+  <!-- ── Filters Toolbar ── -->
+  <div class="filters-card">
+    <div class="filters-left">
+      <p-iconfield class="search-field">
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          [(ngModel)]="searchKeyword"
+          placeholder="Search by title, category, or specs..."
+          class="catalog-search-input" />
+      </p-iconfield>
+
+      <p-select
+        [(ngModel)]="selectedCategory"
+        [options]="categories()"
+        placeholder="All Categories"
+        [showClear]="true"
+        styleClass="category-select" />
+
+      <p-select
+        [(ngModel)]="selectedSort"
+        [options]="sortOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Sort by"
+        styleClass="sort-select" />
+
+      <p-button
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        pTooltip="Clear Filters"
+        (onClick)="clearFilters()" />
+    </div>
+
+    <div class="filters-right" *ngIf="cartService.totalItems() > 0">
+      <span class="cart-subtotal-summary">
+        Cart: <strong>{{ cartService.totalItems() }} items</strong> (₹ {{ cartService.totalPrice() | number: '1.2-2' }})
+      </span>
+    </div>
+  </div>
+
+  <!-- ── Loading Indicator ── -->
+  <div *ngIf="loading()" class="loading-state">
+    <i class="pi pi-spin pi-spinner"></i>
+    <p>Loading catalog products...</p>
+  </div>
+
+  <!-- ── Products Grid ── -->
+  <div *ngIf="!loading() && filteredProducts().length > 0" class="products-grid">
+    <div *ngFor="let product of filteredProducts()" class="product-card-wrapper">
+      <div class="product-card" [class.out-of-stock]="product.stock === 0 || product.status === 'OUT_OF_STOCK'">
+
+        <!-- Card Image Header -->
+        <div class="card-img-container">
+          <img
+            *ngIf="product.imageUrl"
+            [src]="product.imageUrl"
+            [alt]="product.name"
+            class="product-image"
+            (error)="product.imageUrl = ''" />
+
+          <div *ngIf="!product.imageUrl" class="product-img-fallback">
+            <i class="pi pi-box"></i>
+          </div>
+
+          <!-- Badges Overlay -->
+          <div class="badge-overlay-top">
+            <span class="category-tag">{{ product.category }}</span>
+            <p-tag
+              [value]="getStockBadgeLabel(product)"
+              [severity]="getStockBadgeSeverity(product)"
+              styleClass="stock-tag" />
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-content">
+          <h3 class="product-name" [pTooltip]="product.name">{{ product.name }}</h3>
+          <p class="product-description">{{ product.description || 'Quality product available in catalog' }}</p>
+
+          <div class="product-pricing-row">
+            <div class="price-box">
+              <span class="currency-symbol">₹</span>
+              <span class="price-amount">{{ product.price | number: '1.2-2' }}</span>
+            </div>
+            <div class="stock-status-text" [class.low]="product.stock > 0 && product.stock <= 5">
+              <i class="pi pi-check-circle" *ngIf="product.stock > 5"></i>
+              <i class="pi pi-exclamation-triangle" *ngIf="product.stock > 0 && product.stock <= 5"></i>
+              <i class="pi pi-times-circle" *ngIf="product.stock === 0"></i>
+              <span>{{ product.stock > 0 ? (product.stock + ' available') : 'Out of Stock' }}</span>
+            </div>
+          </div>
+
+          <!-- Quantity Selector & Actions -->
+          <div class="card-action-bar">
+            <!-- Quantity Controls -->
+            <div class="qty-control-box" *ngIf="product.stock > 0 && product.status === 'ACTIVE'">
+              <button
+                type="button"
+                class="qty-btn"
+                [disabled]="getQuantity(product.id) <= 1"
+                (click)="decreaseQuantity(product)">
+                <i class="pi pi-minus"></i>
+              </button>
+              <span class="qty-value">{{ getQuantity(product.id) }}</span>
+              <button
+                type="button"
+                class="qty-btn"
+                [disabled]="getQuantity(product.id) >= product.stock"
+                (click)="increaseQuantity(product)">
+                <i class="pi pi-plus"></i>
+              </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="buttons-row">
+              <p-button
+                label="Add to Cart"
+                icon="pi pi-shopping-cart"
+                severity="primary"
+                [outlined]="true"
+                size="small"
+                styleClass="w-full add-cart-btn"
+                [disabled]="product.stock === 0 || product.status !== 'ACTIVE'"
+                (onClick)="addToCart(product)" />
+
+              <p-button
+                label="Buy Now"
+                icon="pi pi-bolt"
+                severity="success"
+                size="small"
+                styleClass="w-full buy-now-btn"
+                [disabled]="product.stock === 0 || product.status !== 'ACTIVE'"
+                (onClick)="buyNow(product)" />
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Empty State ── -->
+  <div *ngIf="!loading() && filteredProducts().length === 0" class="empty-state">
+    <div class="empty-box">
+      <i class="pi pi-search empty-icon"></i>
+      <h3>No Products Found</h3>
+      <p>Try searching for a different keyword or removing category filters.</p>
+      <p-button label="Reset Filters" icon="pi pi-refresh" (onClick)="clearFilters()" />
+    </div>
+  </div>
+
+</div>

@@ -7,6 +7,7 @@ import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { UserService } from '../../services/user.service';
 import { UserStore } from '../../../../store/user.store';
@@ -81,7 +82,8 @@ const MOCK_USERS: User[] = [
     TagModule,
     InputTextModule,
     ToastModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    TooltipModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './user-list.component.html',
@@ -166,6 +168,27 @@ confirmDelete(user: User): void {
   }
 
   navigateToDetail(user: User): void {
-  this.router.navigate(['/users/detail', user.id]);
-}
+    this.router.navigate(['/users/detail', user.id]);
+  }
+
+  resendWelcomeEmail(user: User): void {
+    this.userService.resendWelcomeEmail(user.id).subscribe({
+      next: (res) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Email Dispatched',
+          detail: res.message || `Welcome email dispatched to ${user.email}`,
+          life: 4000
+        });
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Email Failed',
+          detail: err.error?.message || 'Could not dispatch email.',
+          life: 4000
+        });
+      }
+    });
+  }
 }

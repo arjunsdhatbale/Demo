@@ -65,20 +65,29 @@
             [rounded]="true"
             [text]="true"
             severity="info"
+            pTooltip="Edit User"
             (onClick)="navigateToEdit(user)" />
+          <p-button
+            icon="pi pi-envelope"
+            [rounded]="true"
+            [text]="true"
+            severity="warn"
+            pTooltip="Resend Welcome Email"
+            (onClick)="resendWelcomeEmail(user)" />
+          <p-button
+            icon="pi pi-eye" 
+            [rounded]="true" 
+            [text]="true" 
+            severity="success" 
+            pTooltip="View Details"
+            (onClick)="navigateToDetail(user)" />
           <p-button
             icon="pi pi-trash"
             [rounded]="true"  
             [text]="true"
             severity="danger"
+            pTooltip="Delete User"
             (onClick)="confirmDelete(user)" />
-            <p-button 
-            icon="pi pi-eye" 
-            [rounded]="true" 
-            [text]="true" 
-            severity="success" 
-            (onClick)="navigateToDetail(user)" />
-            
         </td>
       </tr>
     </ng-template>

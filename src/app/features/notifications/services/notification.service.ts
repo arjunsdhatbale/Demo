@@ -1,27 +1,37 @@
 import { inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { IMessage } from '@stomp/stompjs';
 import { MessageService } from 'primeng/api';
-import { NotificationMessage, ChatMessage } from '../models/notification.model';
+import { Observable, catchError, of, tap } from 'rxjs';
+import { NotificationMessage, ChatMessage, NotificationStatus } from '../models/notification.model';
 import { WebsocketService } from '../../../core/services/websocket.service';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
+  private http = inject(HttpClient);
   private wsService = inject(WebsocketService);
   private messageService = inject(MessageService);
 
   private initialNotifications: NotificationMessage[] = [
     {
-      message: 'Welcome to PrimeNG demo! Components loaded successfully.',
+      title: 'Welcome to PrimeNG',
+      message: 'Components and notification services loaded successfully.',
+      type: 'INFO',
       timestamp: new Date(Date.now() - 1000 * 60 * 15).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     },
     {
+      title: 'Inventory Alert',
       message: 'Inventory alert: 3 products are low on stock.',
+      type: 'WARNING',
       timestamp: new Date(Date.now() - 1000 * 60 * 45).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     },
     {
+      title: 'New Registration',
       message: 'New user registered: Arjun Dhatbale (Admin)',
+      type: 'WELCOME',
       timestamp: new Date(Date.now() - 1000 * 60 * 120).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ];
@@ -49,21 +59,46 @@ export class NotificationService {
     }
   ];
 
-  // Signal to hold all notifications & chat messages
+  // Signals
   notifications = signal<NotificationMessage[]>(this.initialNotifications);
   chatMessages = signal<ChatMessage[]>(this.initialChatMessages);
   unreadCount = signal<number>(this.initialNotifications.length);
+  featureStatus = signal<NotificationStatus | null>(null);
+  currentUsername = signal<string>('arjun');
 
   private initialized = false;
 
-  init(): void {
+  init(username = 'arjun'): void {
+    this.currentUsername.set(username);
+    this.checkFeatureStatus().subscribe();
+
     if (this.initialized) return;
     this.initialized = true;
 
     try {
-      this.wsService.connect();
+      this.wsService.connect(username);
 
-      // Subscribe to /topic/notification for both system alerts and live chat
+      // 1. Subscribe to User-Targeted Private Notifications (/user/queue/notifications)
+      this.wsService.subscribe('/user/queue/notifications', (message: IMessage) => {
+        try {
+          const parsed = JSON.parse(message.body);
+          this.handleIncomingNotification(parsed);
+        } catch {
+          this.addNotification(message.body, 'info');
+        }
+      });
+
+      // 2. Subscribe to Global Broadcast Notifications (/topic/notifications)
+      this.wsService.subscribe('/topic/notifications', (message: IMessage) => {
+        try {
+          const parsed = JSON.parse(message.body);
+          this.handleIncomingNotification(parsed);
+        } catch {
+          this.addNotification(message.body, 'info');
+        }
+      });
+
+      // 3. Subscribe to /topic/notification for peer chat compatibility
       this.wsService.subscribe('/topic/notification', (message: IMessage) => {
         try {
           const parsed = JSON.parse(message.body);
@@ -81,8 +116,66 @@ export class NotificationService {
     }
   }
 
+  switchUser(username: string): void {
+    this.currentUsername.set(username);
+    this.wsService.connect(username);
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Switched User Session',
+      detail: `Now connected as ${username} to /user/queue/notifications`,
+      life: 3000
+    });
+  }
+
+  checkFeatureStatus(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/notifications/status`).pipe(
+      tap(res => {
+        if (res && res.data) {
+          this.featureStatus.set(res.data as NotificationStatus);
+        }
+      }),
+      catchError(err => {
+        console.warn('Could not query notification feature status:', err);
+        return of(null);
+      })
+    );
+  }
+
+  handleIncomingNotification(notif: any): void {
+    const formatted: NotificationMessage = {
+      id: notif.id,
+      title: notif.title || 'System Notification',
+      message: notif.message,
+      type: notif.type || 'INFO',
+      recipient: notif.recipient,
+      timestamp: notif.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      metadata: notif.metadata
+    };
+
+    this.notifications.update(list => [formatted, ...list]);
+    this.unreadCount.update(count => count + 1);
+
+    const severityMap: Record<string, 'success' | 'info' | 'warn' | 'error'> = {
+      SUCCESS: 'success',
+      WELCOME: 'success',
+      WARNING: 'warn',
+      SECURITY: 'warn',
+      ERROR: 'error',
+      BULK_UPLOAD: 'info',
+      INFO: 'info'
+    };
+
+    const severity = severityMap[formatted.type || 'INFO'] || 'info';
+
+    this.messageService.add({
+      severity,
+      summary: formatted.title,
+      detail: formatted.message,
+      life: 5000
+    });
+  }
+
   handleIncomingChat(chat: ChatMessage): void {
-    // Avoid duplicate message if already added
     const exists = this.chatMessages().some(m => m.id === chat.id);
     if (exists) return;
 
@@ -104,15 +197,23 @@ export class NotificationService {
     } catch {
       sent = false;
     }
-    // If not connected to WS broker, add to local stream so UI is responsive
     if (!sent) {
       this.handleIncomingChat(chat);
     }
   }
 
+  sendPrivateEcho(message: string): boolean {
+    return this.wsService.sendMessage('/app/private-notification', message);
+  }
+
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/users/password-reset/request`, { email });
+  }
+
   addNotification(message: string, severity: 'success' | 'info' | 'warn' | 'error' = 'info'): void {
     const notification: NotificationMessage = {
       message,
+      title: severity.toUpperCase(),
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -127,7 +228,6 @@ export class NotificationService {
     });
   }
 
-  // Send notification: send to WebSocket if connected (which broadcasts back), or fallback to local list
   sendNotification(message: string, severity: 'success' | 'info' | 'warn' | 'error' = 'info'): void {
     let sent = false;
     try {

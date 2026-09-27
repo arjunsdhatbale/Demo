@@ -19,6 +19,18 @@
       </div>
 
       <div class="header-right">
+        <!-- Master Feature Switch Status (from application.properties) -->
+        <div class="connection-pill"
+             [style.background]="featureStatus()?.enabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'"
+             [style.color]="featureStatus()?.enabled ? '#10b981' : '#ef4444'"
+             [style.border]="featureStatus()?.enabled ? '1px solid #10b981' : '1px solid #ef4444'"
+             (click)="refreshFeatureStatus()"
+             style="cursor: pointer;"
+             title="Click to re-fetch backend status from application.properties">
+          <i class="pi" [ngClass]="featureStatus()?.enabled ? 'pi-check-circle' : 'pi-times-circle'"></i>
+          <span>Feature Switch: {{ featureStatus()?.enabled ? 'ACTIVE' : 'INACTIVE' }}</span>
+        </div>
+
         <div class="connection-pill" [class.connected]="isConnected" [class.disconnected]="!isConnected">
           <span class="status-dot"></span>
           <span>{{ isConnected ? 'WebSocket Online' : 'WebSocket Offline' }}</span>
@@ -55,6 +67,15 @@
         (click)="activeView = 'system'">
         <i class="pi pi-bell"></i>
         <span>System Broadcasts</span>
+      </button>
+
+      <button
+        class="mode-btn"
+        [class.active]="activeView === 'private'"
+        (click)="activeView = 'private'">
+        <i class="pi pi-lock"></i>
+        <span>User-Targeted & Email Features</span>
+        <span class="pill-badge" style="background: #4f46e5; color: #fff;">New</span>
       </button>
     </div>
   </p-card>
@@ -444,6 +465,253 @@
         </div>
       </div>
     </p-card>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- 4. USER-TARGETED NOTIFICATIONS & EMAIL / SMS SERVICES PANEL           -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeView === 'private'" class="system-logs-wrapper">
+
+    <!-- Active Status Card -->
+    <p-card styleClass="log-controls-card" [style]="{ 'margin-bottom': '20px' }">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h3 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700; color: #1e293b;">
+            🔐 User-Targeted Notifications & Communication Services
+          </h3>
+          <p style="margin: 0; font-size: 13px; color: #64748b;">
+            Controlled by <code>application.properties</code> master switch:
+            <span [style.color]="featureStatus()?.enabled ? '#16a34a' : '#dc2626'" style="font-weight: 700;">
+              app.notification.enabled = {{ featureStatus()?.enabled }}
+            </span>
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="font-size: 13px; color: #64748b;">Current Active User:</span>
+          <p-button
+            [label]="'Arjun (Admin)'"
+            icon="pi pi-user"
+            size="small"
+            [severity]="currentUsername() === 'arjun' ? 'primary' : 'secondary'"
+            (onClick)="switchUserSession('arjun')" />
+
+          <p-button
+            [label]="'Sarah (Manager)'"
+            icon="pi pi-user"
+            size="small"
+            [severity]="currentUsername() === 'sarah' ? 'primary' : 'secondary'"
+            (onClick)="switchUserSession('sarah')" />
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Controls Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; margin-bottom: 20px;">
+
+      <!-- Card 1: Private Echo via @SendToUser -->
+      <p-card>
+        <div style="margin-bottom: 12px;">
+          <h4 style="margin: 0 0 4px 0; font-size: 15px; color: #1e293b;">
+            <i class="pi pi-replay" style="color: #4f46e5; margin-right: 6px;"></i>
+            Private Echo (&#64;SendToUser)
+          </h4>
+          <p style="font-size: 12px; color: #64748b; margin: 0;">
+            Sends to <code>/app/private-notification</code>; only your session receives response on <code>/user/queue/notifications</code>.
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="privateEchoInput"
+            placeholder="Type private echo message"
+            style="width: 100%;" />
+
+          <p-button
+            label="Send Private Echo"
+            icon="pi pi-send"
+            (onClick)="sendPrivateEcho()" />
+        </div>
+      </p-card>
+
+      <!-- Card 2: Direct Peer Messaging -->
+      <p-card>
+        <div style="margin-bottom: 12px;">
+          <h4 style="margin: 0 0 4px 0; font-size: 15px; color: #1e293b;">
+            <i class="pi pi-arrow-right-arrow-left" style="color: #059669; margin-right: 6px;"></i>
+            Direct Peer Notification
+          </h4>
+          <p style="font-size: 12px; color: #64748b; margin: 0;">
+            Routes directly to another user's private queue via backend STOMP template.
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; gap: 8px;">
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="targetUserInput"
+              placeholder="Target username (e.g. sarah)"
+              style="width: 140px;" />
+
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="directMessageInput"
+              placeholder="Direct message"
+              style="flex: 1;" />
+          </div>
+
+          <p-button
+            label="Send to User"
+            icon="pi pi-share-alt"
+            severity="success"
+            (onClick)="sendDirectToUser()" />
+        </div>
+      </p-card>
+
+      <!-- Card 3: Password Reset Link & Token -->
+      <p-card>
+        <div style="margin-bottom: 12px;">
+          <h4 style="margin: 0 0 4px 0; font-size: 15px; color: #1e293b;">
+            <i class="pi pi-key" style="color: #e11d48; margin-right: 6px;"></i>
+            Request Password Reset
+          </h4>
+          <p style="font-size: 12px; color: #64748b; margin: 0;">
+            Triggers async password reset email, SMS code, and private WebSocket notification.
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <input
+            type="email"
+            pInputText
+            [(ngModel)]="resetEmailInput"
+            placeholder="User email (e.g. arjun@example.com)"
+            style="width: 100%;" />
+
+          <p-button
+            label="Request Password Reset"
+            icon="pi pi-envelope"
+            severity="danger"
+            [loading]="resetLoading"
+            (onClick)="triggerPasswordReset()" />
+        </div>
+      </p-card>
+
+      <!-- Card 4: Welcome Email Test -->
+      <p-card>
+        <div style="margin-bottom: 12px;">
+          <h4 style="margin: 0 0 4px 0; font-size: 15px; color: #1e293b;">
+            <i class="pi pi-sparkles" style="color: #d97706; margin-right: 6px;"></i>
+            Test Welcome Email Trigger
+          </h4>
+          <p style="font-size: 12px; color: #64748b; margin: 0;">
+            Dispatches responsive HTML welcome email asynchronously via JavaMailSender.
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; gap: 8px;">
+            <input
+              type="email"
+              pInputText
+              [(ngModel)]="testEmailRecipient"
+              placeholder="Recipient Email"
+              style="flex: 1;" />
+
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="testEmailName"
+              placeholder="Name"
+              style="width: 130px;" />
+          </div>
+
+          <p-button
+            label="Trigger Welcome Email"
+            icon="pi pi-send"
+            severity="warn"
+            [loading]="emailLoading"
+            (onClick)="triggerTestEmail()" />
+        </div>
+      </p-card>
+
+    </div>
+
+    <!-- Live In-App Notification Stream -->
+    <p-card styleClass="log-display-card">
+      <div class="logs-header">
+        <div class="logs-title">
+          <i class="pi pi-inbox"></i>
+          <span>Incoming Notifications (Private & Broadcasts)</span>
+          <span class="count-badge">{{ notifications().length }} total</span>
+        </div>
+
+        <div class="logs-actions">
+          <p-button
+            label="Refresh Status"
+            icon="pi pi-refresh"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            (onClick)="refreshFeatureStatus()" />
+
+          <p-button
+            label="Clear all"
+            icon="pi pi-trash"
+            size="small"
+            severity="danger"
+            [text]="true"
+            (onClick)="clearAll()" />
+        </div>
+      </div>
+
+      <div class="notification-list">
+        <div
+          *ngFor="let notif of notifications(); let i = index"
+          class="notification-item"
+          [class.unread]="i < unreadCount()">
+
+          <div class="notif-icon">
+            <i class="pi" [ngClass]="{
+              'pi-envelope': notif.type === 'WELCOME',
+              'pi-key': notif.type === 'PASSWORD_RESET',
+              'pi-file-excel': notif.type === 'BULK_UPLOAD',
+              'pi-shield': notif.type === 'SECURITY',
+              'pi-bell': !notif.type || notif.type === 'INFO'
+            }"></i>
+          </div>
+
+          <div class="notif-content">
+            <p class="notif-message" style="font-weight: 600; margin-bottom: 2px;">
+              {{ notif.title || 'Notification' }}
+            </p>
+            <p class="notif-message" style="font-size: 13px; color: #475569;">
+              {{ notif.message }}
+            </p>
+            <span class="notif-time">
+              <i class="pi pi-clock"></i>
+              {{ notif.timestamp }}
+              <span *ngIf="notif.recipient" style="margin-left: 8px; color: #4f46e5;">
+                👤 To: {{ notif.recipient }}
+              </span>
+            </span>
+          </div>
+
+          <span class="new-badge" *ngIf="i < unreadCount()">NEW</span>
+        </div>
+
+        <div class="empty-state" *ngIf="notifications().length === 0">
+          <i class="pi pi-bell-slash"></i>
+          <p>No notifications received yet.</p>
+        </div>
+      </div>
+    </p-card>
+
   </div>
 
 </div>

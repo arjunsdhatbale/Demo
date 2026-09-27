@@ -1,0 +1,126 @@
+<p-toast />
+
+<p-dialog
+  [(visible)]="isVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Checkout & Order Placement"
+  [style]="{ width: '620px', maxWidth: '95vw' }"
+  styleClass="checkout-p-dialog">
+
+  <div class="checkout-form-container">
+
+    <!-- Active User Banner -->
+    <div class="user-order-badge">
+      <i class="pi pi-user"></i>
+      <div class="user-text">
+        <span class="ordering-for">Ordering as:</span>
+        <strong class="user-fullname">{{ currentUserService.displayName() }}</strong>
+        <span class="user-email">({{ currentUserService.currentUser().email }})</span>
+      </div>
+    </div>
+
+    <!-- Section: Shipping & Contact -->
+    <div class="form-section">
+      <h4 class="section-title">
+        <i class="pi pi-map-marker"></i> Delivery Information
+      </h4>
+
+      <div class="field-group">
+        <label for="shippingAddress">Shipping / Delivery Address *</label>
+        <textarea
+          id="shippingAddress"
+          class="checkout-textarea"
+          rows="3"
+          [(ngModel)]="shippingAddress"
+          placeholder="Enter complete house/flat no., street, city, state and PIN code..."></textarea>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label for="contactPhone">Contact Phone Number *</label>
+          <input
+            pInputText
+            id="contactPhone"
+            [(ngModel)]="contactPhone"
+            placeholder="e.g. 9876543210"
+            class="w-full" />
+        </div>
+
+        <div class="field-group">
+          <label for="paymentMethod">Payment Method *</label>
+          <p-select
+            id="paymentMethod"
+            [(ngModel)]="paymentMethod"
+            [options]="paymentOptions"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full" />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="notes">Delivery Instructions / Notes (Optional)</label>
+        <input
+          pInputText
+          id="notes"
+          [(ngModel)]="notes"
+          placeholder="e.g. Ring doorbell, leave at front desk"
+          class="w-full" />
+      </div>
+    </div>
+
+    <!-- Section: Order Summary -->
+    <div class="form-section summary-section">
+      <h4 class="section-title">
+        <i class="pi pi-list"></i> Order Summary ({{ cartService.totalItems() }} items)
+      </h4>
+
+      <div class="mini-items-list">
+        <div *ngFor="let item of cartService.items()" class="mini-item-row">
+          <div class="mini-name-qty">
+            <span class="mini-qty">{{ item.quantity }}x</span>
+            <span class="mini-title">{{ item.product.name }}</span>
+          </div>
+          <span class="mini-subtotal">₹ {{ (item.product.price * item.quantity) | number: '1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="total-breakdown">
+        <div class="breakdown-row">
+          <span>Subtotal</span>
+          <span>₹ {{ cartService.totalPrice() | number: '1.2-2' }}</span>
+        </div>
+        <div class="breakdown-row">
+          <span>Delivery Charges</span>
+          <span class="free-text">FREE</span>
+        </div>
+        <div class="breakdown-row total-row">
+          <span>Total Payable</span>
+          <span class="total-val">₹ {{ cartService.totalPrice() | number: '1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer-actions">
+      <p-button
+        label="Back to Cart"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        [text]="true"
+        (onClick)="isVisible = false; cartService.openDrawer()" />
+
+      <p-button
+        label="Confirm & Place Order"
+        icon="pi pi-check"
+        severity="success"
+        [loading]="loading()"
+        (onClick)="placeOrder()" />
+    </div>
+  </ng-template>
+
+</p-dialog>

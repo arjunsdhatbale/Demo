@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,6 +12,9 @@ import { MessageService } from 'primeng/api';
 import { NotificationService } from '../notifications/services/notification.service';
 import { ProductService } from '../products/services/product.service';
 import { UserService } from '../users/services/user.service';
+import { OrderService } from '../orders/services/order.service';
+import { PaymentService } from '../payments/services/payment.service';
+import { PaymentStats } from '../payments/models/payment.model';
 import { ProductStore } from '../../store/product.store';
 import { UserStore } from '../../store/user.store';
 
@@ -37,10 +40,14 @@ export class DashboardComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private productService = inject(ProductService);
   private userService = inject(UserService);
+  private orderService = inject(OrderService);
+  private paymentService = inject(PaymentService);
   private productStore = inject(ProductStore);
   private userStore = inject(UserStore);
 
   customMessage = '';
+  totalOrders = signal<number>(0);
+  paymentStats = signal<PaymentStats | null>(null);
 
   unreadCount = this.notificationService.unreadCount;
   totalProducts = computed(() => this.productStore.totalProducts());
@@ -64,6 +71,24 @@ export class DashboardComponent implements OnInit {
         error: () => {}
       });
     }
+
+    this.orderService.getOrderStats().subscribe({
+      next: (res) => {
+        if (res?.data) {
+          this.totalOrders.set(res.data.totalOrders);
+        }
+      },
+      error: () => {}
+    });
+
+    this.paymentService.getPaymentStats().subscribe({
+      next: (res) => {
+        if (res?.data) {
+          this.paymentStats.set(res.data);
+        }
+      },
+      error: () => {}
+    });
   }
 
   sampleProducts = [
@@ -97,4 +122,4 @@ export class DashboardComponent implements OnInit {
     };
     return map[status] || 'info';
   }
-}
+}

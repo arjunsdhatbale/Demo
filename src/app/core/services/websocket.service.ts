@@ -17,12 +17,19 @@ export class WebsocketService implements OnDestroy {
 
   constructor() { }
   
-  connect(): void {
-    this.client = new Client({
+  connect(username?: string): void {
+    if (this.client?.active) {
+      this.client.deactivate();
+    }
 
-      // ✅ Use imported SockJS for browser compatibility with Spring Boot
+    const wsEndpoint = username
+      ? `${environment.wsUrl}?username=${encodeURIComponent(username)}`
+      : environment.wsUrl;
+
+    this.client = new Client({
+      // ✅ Use imported SockJS with optional username for Spring Boot StompPrincipal
       webSocketFactory: () => {
-        return new SockJS(environment.wsUrl);
+        return new SockJS(wsEndpoint);
       },
 
       onConnect: () => {

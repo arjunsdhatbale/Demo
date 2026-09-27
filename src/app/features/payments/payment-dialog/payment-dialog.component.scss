@@ -1,0 +1,464 @@
+.gateway-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--p-surface-50, #f8fafc);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+
+  .order-info {
+    font-size: 0.88rem;
+
+    .order-label {
+      color: var(--p-text-secondary-color);
+      margin-right: 0.35rem;
+    }
+
+    .order-number {
+      color: var(--p-primary-color);
+    }
+
+    .customer-tag {
+      color: var(--p-text-secondary-color);
+      margin-left: 0.4rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  .amount-badge {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    color: var(--p-green-600, #16a34a);
+    font-weight: 800;
+
+    .curr {
+      font-size: 0.95rem;
+    }
+
+    .val {
+      font-size: 1.35rem;
+    }
+  }
+}
+
+.payment-tabs-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.65rem 0.25rem;
+    background: var(--p-surface-50, #f8fafc);
+    border: 1px solid var(--p-content-border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--p-text-secondary-color);
+    transition: all 0.15s ease;
+
+    i {
+      font-size: 1.15rem;
+    }
+
+    &:hover {
+      border-color: var(--p-primary-300);
+      color: var(--p-primary-color);
+    }
+
+    &.active {
+      background: var(--p-primary-50);
+      border-color: var(--p-primary-color);
+      color: var(--p-primary-color);
+    }
+  }
+}
+
+.tab-panel {
+  min-height: 250px;
+}
+
+/* UPI Styles */
+.upi-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .qr-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+
+    .qr-mockup {
+      width: 140px;
+      height: 140px;
+      background: #ffffff;
+      border: 2px dashed var(--p-primary-300);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+      .qr-icon {
+        font-size: 3.5rem;
+        color: var(--p-primary-color);
+      }
+
+      .qr-scan-text {
+        font-size: 0.65rem;
+        color: var(--p-text-secondary-color);
+        font-weight: 600;
+      }
+    }
+
+    .qr-timer {
+      font-size: 0.75rem;
+      color: var(--p-amber-600);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+  }
+
+  .upi-divider {
+    text-align: center;
+    position: relative;
+    margin: 0.25rem 0;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background: var(--p-content-border-color);
+    }
+
+    span {
+      position: relative;
+      background: var(--p-content-background);
+      padding: 0 0.75rem;
+      font-size: 0.7rem;
+      color: var(--p-text-secondary-color);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .upi-apps-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+
+    .upi-app-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid var(--p-content-border-color);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--p-text-color);
+      transition: all 0.15s ease;
+
+      &:hover {
+        border-color: var(--p-primary-color);
+      }
+
+      &.selected {
+        background: var(--p-primary-50);
+        border-color: var(--p-primary-color);
+        color: var(--p-primary-color);
+      }
+    }
+  }
+
+  .upi-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--p-text-color);
+    }
+  }
+}
+
+/* Card Styles */
+.card-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  .visual-card-preview {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+
+    .card-preview-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .card-chip {
+        font-size: 1.5rem;
+        color: #fbbf24;
+      }
+
+      .card-brand {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: #94a3b8;
+      }
+    }
+
+    .card-preview-number {
+      font-family: monospace;
+      font-size: 1.25rem;
+      letter-spacing: 2px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-preview-bottom {
+      display: flex;
+      justify-content: space-between;
+
+      .card-lbl {
+        display: block;
+        font-size: 0.62rem;
+        color: #94a3b8;
+        letter-spacing: 0.5px;
+      }
+
+      .card-txt {
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+      }
+    }
+  }
+
+  .card-fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+
+    .field-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+
+      label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--p-text-color);
+      }
+
+      &.full {
+        grid-column: span 2;
+      }
+    }
+  }
+}
+
+/* Net Banking Styles */
+.netbanking-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  .bank-lbl {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--p-text-color);
+  }
+
+  .banks-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+
+    .bank-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.75rem;
+      background: var(--p-surface-50, #f8fafc);
+      border: 1px solid var(--p-content-border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--p-text-color);
+      transition: all 0.15s ease;
+
+      .bank-icon {
+        color: var(--p-primary-color);
+      }
+
+      &:hover {
+        border-color: var(--p-primary-color);
+      }
+
+      &.selected {
+        background: var(--p-primary-50);
+        border-color: var(--p-primary-color);
+        color: var(--p-primary-color);
+      }
+    }
+  }
+}
+
+/* COD Styles */
+.cod-container {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+
+  .cod-icon-circle {
+    width: 64px;
+    height: 64px;
+    background: var(--p-primary-50);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+      font-size: 1.8rem;
+      color: var(--p-primary-color);
+    }
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--p-text-color);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--p-text-secondary-color);
+    max-width: 360px;
+    line-height: 1.5;
+  }
+
+  .cod-alert {
+    background: var(--p-surface-100, #f1f5f9);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--p-primary-color);
+  }
+}
+
+/* Success View */
+.payment-success-view {
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+
+  .success-icon-wrap {
+    width: 72px;
+    height: 72px;
+    background: #f0fdf4;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+
+    i {
+      font-size: 3rem;
+      color: var(--p-green-600, #16a34a);
+    }
+  }
+
+  .success-title {
+    margin: 0;
+    font-size: 1.35rem;
+    color: var(--p-text-color);
+    font-weight: 700;
+  }
+
+  .success-subtitle {
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    color: var(--p-text-secondary-color);
+  }
+
+  .receipt-mini-box {
+    width: 100%;
+    background: var(--p-surface-50, #f8fafc);
+    border: 1px dashed var(--p-content-border-color);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+
+    .receipt-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--p-text-secondary-color);
+
+      strong {
+        color: var(--p-text-color);
+      }
+
+      .receipt-highlight {
+        font-family: monospace;
+        color: var(--p-primary-color);
+      }
+
+      .paid-amount {
+        color: var(--p-green-600, #16a34a);
+        font-size: 1.05rem;
+      }
+    }
+  }
+}
+
+.gateway-footer {
+  width: 100%;
+
+  .footer-btn-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.75rem;
+  }
+}

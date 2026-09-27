@@ -28,11 +28,27 @@ export const routes: Routes = [
       import('./features/notifications/notification.routes')
         .then(m => m.notificationRoutes)
   },
-  {
-    path: '',
-    redirectTo: 'dashboard',
-    pathMatch: 'full'
-  }
-]
+    {
+      path: 'shop',
+      loadComponent: () =>
+        import('./features/orders/product-catalog/product-catalog.component')
+          .then(m => m.ProductCatalogComponent)
+    },
+    {
+      path: 'orders',
+      loadChildren: () =>
+        import('./features/orders/orders.routes').then(m => m.orderRoutes)
+    },
+    {
+      path: 'payments',
+      loadChildren: () =>
+        import('./features/payments/payments.routes').then(m => m.paymentRoutes)
+    },
+    {
+      path: '',
+      redirectTo: 'dashboard',
+      pathMatch: 'full'
+    }
+  ]
   }
 ];

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, HostListener } from '@angular/core';
+import { Component, inject, OnInit, HostListener, computed } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +14,13 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
+
 import { NotificationService } from '../../features/notifications/services/notification.service';
+import { CartService } from '../../features/orders/services/cart.service';
+import { CurrentUserService } from '../../core/services/current-user.service';
+import { CartDrawerComponent } from '../../features/orders/cart-drawer/cart-drawer.component';
+import { CheckoutDialogComponent } from '../../features/orders/checkout-dialog/checkout-dialog.component';
+import { PaymentDialogComponent } from '../../features/payments/payment-dialog/payment-dialog.component';
 
 @Component({
   selector: 'app-main-layout',
@@ -34,7 +40,10 @@ import { NotificationService } from '../../features/notifications/services/notif
     IconFieldModule,
     InputIconModule,
     InputTextModule,
-    TagModule
+    TagModule,
+    CartDrawerComponent,
+    CheckoutDialogComponent,
+    PaymentDialogComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'
@@ -43,6 +52,8 @@ export class MainLayoutComponent implements OnInit {
 
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  public cartService = inject(CartService);
+  public currentUserService = inject(CurrentUserService);
 
   sidebarVisible = true;
   isMobile = false;
@@ -54,6 +65,9 @@ export class MainLayoutComponent implements OnInit {
 
   menuItems = [
     { label: 'Dashboard', route: '/dashboard', icon: 'pi pi-home' },
+    { label: 'Storefront', route: '/shop', icon: 'pi pi-shopping-bag' },
+    { label: 'Orders', route: '/orders', icon: 'pi pi-receipt' },
+    { label: 'Payments', route: '/payments', icon: 'pi pi-credit-card' },
     { label: 'Products', route: '/products', icon: 'pi pi-box' },
     { label: 'Product Upload', route: '/products/bulk-upload', icon: 'pi pi-upload' },
     { label: 'Users', route: '/users', icon: 'pi pi-users' },
@@ -85,7 +99,6 @@ export class MainLayoutComponent implements OnInit {
     }
   }
 
-
   toggleSidebar() {
     this.sidebarVisible = !this.sidebarVisible;
   }
@@ -108,13 +121,12 @@ export class MainLayoutComponent implements OnInit {
   }
 
   markAllNotificationsRead() {
-
     this.notificationService.markAllRead();
   }
 
   onNavSearch() {
     if (this.navSearchText.trim()) {
-      this.router.navigate(['/products'], { queryParams: { q: this.navSearchText } });
+      this.router.navigate(['/shop'], { queryParams: { q: this.navSearchText } });
     }
   }
 
@@ -126,4 +138,3 @@ export class MainLayoutComponent implements OnInit {
     return this.router.url.includes(route);
   }
 }
-

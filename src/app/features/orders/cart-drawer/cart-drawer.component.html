@@ -1,0 +1,135 @@
+<p-sidebar
+  [(visible)]="isVisible"
+  position="right"
+  [modal]="true"
+  [dismissible]="true"
+  [showCloseIcon]="true"
+  styleClass="cart-drawer-sidebar"
+  [style]="{ width: '420px', maxWidth: '100vw' }">
+
+  <!-- Drawer Header -->
+  <ng-template pTemplate="header">
+    <div class="cart-header-row">
+      <div class="cart-title">
+        <i class="pi pi-shopping-cart"></i>
+        <span>Shopping Cart</span>
+        <p-badge
+          *ngIf="cartService.totalItems() > 0"
+          [value]="cartService.totalItems()"
+          severity="info" />
+      </div>
+      <p-button
+        *ngIf="cartService.totalItems() > 0"
+        icon="pi pi-trash"
+        severity="danger"
+        [text]="true"
+        [rounded]="true"
+        size="small"
+        pTooltip="Clear Cart"
+        (onClick)="clearCart()" />
+    </div>
+  </ng-template>
+
+  <!-- Drawer Body -->
+  <div class="cart-body">
+
+    <!-- Empty State -->
+    <div *ngIf="cartService.isEmpty()" class="cart-empty">
+      <div class="empty-icon-circle">
+        <i class="pi pi-shopping-bag"></i>
+      </div>
+      <h4>Your cart is empty</h4>
+      <p>Browse products from our storefront and add them to your cart to get started.</p>
+      <p-button
+        label="Explore Products"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        size="small"
+        (onClick)="isVisible = false" />
+    </div>
+
+    <!-- Items List -->
+    <div *ngIf="!cartService.isEmpty()" class="cart-items-list">
+      <div *ngFor="let item of cartService.items()" class="cart-item-card">
+
+        <!-- Thumbnail -->
+        <div class="item-img-box">
+          <img
+            *ngIf="item.product.imageUrl"
+            [src]="item.product.imageUrl"
+            [alt]="item.product.name" />
+          <div *ngIf="!item.product.imageUrl" class="fallback-img">
+            <i class="pi pi-box"></i>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="item-details">
+          <div class="item-top">
+            <span class="item-name">{{ item.product.name }}</span>
+            <button class="delete-btn" (click)="removeItem(item)" pTooltip="Remove">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+
+          <span class="item-category">{{ item.product.category }}</span>
+
+          <div class="item-bottom">
+            <div class="qty-pill">
+              <button
+                class="qty-btn"
+                [disabled]="item.quantity <= 1"
+                (click)="decreaseQty(item)">
+                <i class="pi pi-minus"></i>
+              </button>
+              <span class="qty-number">{{ item.quantity }}</span>
+              <button
+                class="qty-btn"
+                [disabled]="item.quantity >= item.product.stock"
+                (click)="increaseQty(item)">
+                <i class="pi pi-plus"></i>
+              </button>
+            </div>
+
+            <div class="item-price-total">
+              <span class="unit-price">₹{{ item.product.price | number:'1.2-2' }} each</span>
+              <span class="subtotal-price">₹{{ (item.product.price * item.quantity) | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Drawer Footer -->
+  <ng-template pTemplate="footer" *ngIf="!cartService.isEmpty()">
+    <div class="cart-footer-box">
+
+      <div class="order-summary-row">
+        <span>Subtotal ({{ cartService.totalItems() }} items)</span>
+        <strong>₹ {{ cartService.totalPrice() | number:'1.2-2' }}</strong>
+      </div>
+
+      <div class="order-summary-row">
+        <span>Delivery / Shipping</span>
+        <span class="free-shipping">FREE</span>
+      </div>
+
+      <div class="order-summary-row grand-total">
+        <span>Grand Total</span>
+        <span class="total-amount">₹ {{ cartService.totalPrice() | number:'1.2-2' }}</span>
+      </div>
+
+      <p-button
+        label="Proceed to Checkout"
+        icon="pi pi-credit-card"
+        severity="success"
+        styleClass="w-full checkout-btn"
+        (onClick)="proceedToCheckout()" />
+
+    </div>
+  </ng-template>
+
+</p-sidebar>

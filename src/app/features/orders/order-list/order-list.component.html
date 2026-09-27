@@ -1,0 +1,373 @@
+<div class="orders-page-container">
+
+  <p-toast />
+  <p-confirmDialog />
+
+  <!-- ── Page Header ── -->
+  <div class="orders-header">
+    <div class="header-left">
+      <h2>
+        <i class="pi pi-receipt"></i>
+        Order Management & History
+      </h2>
+      <span class="active-user-badge">
+        Active as: <strong>{{ currentUserService.displayName() }}</strong> ({{ currentUserService.currentUser().role }})
+      </span>
+    </div>
+
+    <div class="header-actions">
+      <p-button
+        label="Shop Products"
+        icon="pi pi-shopping-bag"
+        (onClick)="navigateToShop()" />
+    </div>
+  </div>
+
+  <!-- ── Metric Cards ── -->
+  <div class="stats-row" *ngIf="stats()">
+    <div class="stat-card">
+      <div class="stat-meta">
+        <span class="stat-title">Total Orders</span>
+        <h3 class="stat-val">{{ stats()?.totalOrders || 0 }}</h3>
+      </div>
+      <div class="stat-icon-wrapper blue">
+        <i class="pi pi-box"></i>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-meta">
+        <span class="stat-title">Total Revenue</span>
+        <h3 class="stat-val">₹ {{ (stats()?.totalRevenue || 0) | number:'1.2-2' }}</h3>
+      </div>
+      <div class="stat-icon-wrapper green">
+        <i class="pi pi-wallet"></i>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-meta">
+        <span class="stat-title">Pending Orders</span>
+        <h3 class="stat-val">{{ stats()?.pendingOrders || 0 }}</h3>
+      </div>
+      <div class="stat-icon-wrapper orange">
+        <i class="pi pi-clock"></i>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-meta">
+        <span class="stat-title">Delivered Orders</span>
+        <h3 class="stat-val">{{ stats()?.deliveredOrders || 0 }}</h3>
+      </div>
+      <div class="stat-icon-wrapper teal">
+        <i class="pi pi-check-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main Orders Card ── -->
+  <div class="orders-card">
+
+    <!-- Tab navigation -->
+    <div class="orders-tab-bar">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'my'"
+        (click)="switchTab('my')">
+        <i class="pi pi-user"></i>
+        <span>My Orders</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'all'"
+        (click)="switchTab('all')">
+        <i class="pi pi-shield"></i>
+        <span>All System Orders (Admin)</span>
+      </button>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="orders-filters-bar">
+      <p-iconfield class="search-field">
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          [(ngModel)]="searchKeyword"
+          placeholder="Search by order #, customer, address..."
+          class="w-full" />
+      </p-iconfield>
+
+      <p-select
+        [(ngModel)]="selectedStatus"
+        [options]="filterStatusOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Filter by Status"
+        styleClass="status-select" />
+
+      <p-button
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        pTooltip="Refresh Orders"
+        (onClick)="loadOrders(); loadStats()" />
+    </div>
+
+    <!-- Orders Table -->
+    <p-table
+      [value]="filteredOrders()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      styleClass="p-datatable-striped p-datatable-gridlines orders-table">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="orderNumber">Order # <p-sortIcon field="orderNumber" /></th>
+          <th pSortableColumn="createdAt">Date <p-sortIcon field="createdAt" /></th>
+          <th>Customer</th>
+          <th>Items</th>
+          <th pSortableColumn="totalAmount">Total <p-sortIcon field="totalAmount" /></th>
+          <th>Payment</th>
+          <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-order>
+        <tr>
+          <td>
+            <span class="order-number-tag">
+              <i class="pi pi-tag"></i> {{ order.orderNumber }}
+            </span>
+          </td>
+          <td>
+            <div class="date-cell">
+              <span>{{ order.createdAt | date: 'mediumDate' }}</span>
+              <small class="time-text">{{ order.createdAt | date: 'shortTime' }}</small>
+            </div>
+          </td>
+          <td>
+            <div class="customer-cell">
+              <strong>{{ order.customerName }}</strong>
+              <small class="email-text">{{ order.customerEmail }}</small>
+            </div>
+          </td>
+          <td>
+            <span class="items-count-badge">{{ order.totalItems }} item(s)</span>
+          </td>
+          <td>
+            <strong class="order-total-amount">₹ {{ order.totalAmount | number: '1.2-2' }}</strong>
+          </td>
+          <td>
+            <div class="payment-info-cell">
+              <span class="method-text">{{ order.paymentMethod }}</span>
+              <p-tag
+                [value]="order.paymentStatus"
+                [severity]="getPaymentStatusSeverity(order.paymentStatus)"
+                styleClass="payment-tag" />
+            </div>
+          </td>
+          <td>
+            <p-tag
+              [value]="order.status"
+              [severity]="getStatusSeverity(order.status)" />
+          </td>
+          <td>
+            <div class="action-buttons-cell">
+              <!-- Pay Now Button (if PENDING payment & not CANCELLED) -->
+              <p-button
+                *ngIf="order.paymentStatus === 'PENDING' && order.status !== 'CANCELLED'"
+                icon="pi pi-credit-card"
+                [rounded]="true"
+                [text]="true"
+                severity="success"
+                pTooltip="Pay Now"
+                (onClick)="openPaymentForOrder(order)" />
+
+              <p-button
+                icon="pi pi-eye"
+                [rounded]="true"
+                [text]="true"
+                severity="info"
+                pTooltip="View Details"
+                (onClick)="openOrderDetails(order)" />
+
+              <!-- Admin Status Update -->
+              <p-button
+                *ngIf="currentUserService.isAdmin()"
+                icon="pi pi-cog"
+                [rounded]="true"
+                [text]="true"
+                severity="warn"
+                pTooltip="Update Status (Admin)"
+                (onClick)="openStatusUpdateModal(order)" />
+
+              <!-- Cancel Button (if PENDING or CONFIRMED) -->
+              <p-button
+                *ngIf="order.status === 'PENDING' || order.status === 'CONFIRMED'"
+                icon="pi pi-times"
+                [rounded]="true"
+                [text]="true"
+                severity="danger"
+                pTooltip="Cancel Order"
+                (onClick)="confirmCancelOrder(order)" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center empty-table-cell">
+            <div class="no-orders-box">
+              <i class="pi pi-inbox"></i>
+              <p>No orders found.</p>
+              <p-button
+                label="Go to Storefront"
+                icon="pi pi-shopping-bag"
+                size="small"
+                (onClick)="navigateToShop()" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+
+  </div>
+
+  <!-- ── Order Details Dialog ── -->
+  <p-dialog
+    [(visible)]="detailsDialogVisible"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    header="Order Details Breakdown"
+    [style]="{ width: '680px', maxWidth: '95vw' }"
+    styleClass="order-details-dialog">
+
+    <div *ngIf="selectedOrder" class="details-dialog-content">
+
+      <!-- Top Summary Header -->
+      <div class="details-top-header">
+        <div>
+          <span class="order-id-label">Order Number:</span>
+          <h3 class="order-title">#{{ selectedOrder.orderNumber }}</h3>
+          <span class="order-timestamp">Placed on {{ selectedOrder.createdAt | date: 'medium' }}</span>
+        </div>
+        <div class="details-header-badges">
+          <p-tag [value]="selectedOrder.status" [severity]="getStatusSeverity(selectedOrder.status)" />
+          <p-tag [value]="selectedOrder.paymentStatus" [severity]="getPaymentStatusSeverity(selectedOrder.paymentStatus)" />
+        </div>
+      </div>
+
+      <!-- Customer & Shipping Card -->
+      <div class="info-grid">
+        <div class="info-card">
+          <h4><i class="pi pi-user"></i> Customer Info</h4>
+          <p><strong>Name:</strong> {{ selectedOrder.customerName }}</p>
+          <p><strong>Email:</strong> {{ selectedOrder.customerEmail }}</p>
+          <p><strong>Phone:</strong> {{ selectedOrder.contactPhone || selectedOrder.customerPhone }}</p>
+        </div>
+
+        <div class="info-card">
+          <h4><i class="pi pi-map-marker"></i> Delivery & Payment</h4>
+          <p><strong>Address:</strong> {{ selectedOrder.shippingAddress }}</p>
+          <p><strong>Payment Method:</strong> {{ selectedOrder.paymentMethod }}</p>
+          <p *ngIf="selectedOrder.notes"><strong>Notes:</strong> {{ selectedOrder.notes }}</p>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <h4 class="section-title"><i class="pi pi-shopping-bag"></i> Purchased Items</h4>
+      <div class="ordered-items-box">
+        <div *ngFor="let item of selectedOrder.items" class="ordered-item-row">
+          <div class="item-visual-box">
+            <img *ngIf="item.productImageUrl" [src]="item.productImageUrl" [alt]="item.productName" />
+            <div *ngIf="!item.productImageUrl" class="item-fallback-icon">
+              <i class="pi pi-box"></i>
+            </div>
+          </div>
+          <div class="item-meta">
+            <span class="product-title">{{ item.productName }}</span>
+            <span class="product-pricing">₹ {{ item.productPrice | number: '1.2-2' }} × {{ item.quantity }}</span>
+          </div>
+          <div class="item-subtotal">
+            ₹ {{ item.subtotal | number: '1.2-2' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Price Breakdown -->
+      <div class="financial-summary">
+        <div class="fin-row">
+          <span>Items Subtotal</span>
+          <strong>₹ {{ selectedOrder.totalAmount | number: '1.2-2' }}</strong>
+        </div>
+        <div class="fin-row">
+          <span>Shipping Fee</span>
+          <span style="color: var(--p-green-600); font-weight: 700;">FREE</span>
+        </div>
+        <div class="fin-row grand-total-row">
+          <span>Grand Total</span>
+          <span class="grand-total-amount">₹ {{ selectedOrder.totalAmount | number: '1.2-2' }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        *ngIf="selectedOrder && selectedOrder.paymentStatus === 'PENDING' && selectedOrder.status !== 'CANCELLED'"
+        label="Pay Now"
+        icon="pi pi-credit-card"
+        severity="success"
+        (onClick)="detailsDialogVisible = false; openPaymentForOrder(selectedOrder)" />
+      <p-button label="Close" icon="pi pi-times" [text]="true" (onClick)="detailsDialogVisible = false" />
+    </ng-template>
+
+  </p-dialog>
+
+  <!-- ── Admin Status Update Modal ── -->
+  <p-dialog
+    [(visible)]="statusDialogVisible"
+    [modal]="true"
+    [draggable]="false"
+    header="Update Order Fulfillment Status"
+    [style]="{ width: '450px', maxWidth: '95vw' }">
+
+    <div *ngIf="orderToUpdate" style="display: flex; flex-direction: column; gap: 1rem; padding: 0.5rem 0;">
+      <p>
+        Update status for order <strong>#{{ orderToUpdate.orderNumber }}</strong>:
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+        <label for="newStatusSelect" style="font-weight: 600; font-size: 0.85rem;">New Status</label>
+        <p-select
+          id="newStatusSelect"
+          [(ngModel)]="newStatusValue"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          styleClass="w-full" />
+      </div>
+
+      <small style="color: var(--p-text-secondary-color);">
+        Note: Setting the status to CANCELLED will automatically restore the product stock in the inventory.
+      </small>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" icon="pi pi-times" [text]="true" (onClick)="statusDialogVisible = false" />
+      <p-button label="Save Status" icon="pi pi-check" severity="primary" (onClick)="saveStatusUpdate()" />
+    </ng-template>
+
+  </p-dialog>
+
+</div>

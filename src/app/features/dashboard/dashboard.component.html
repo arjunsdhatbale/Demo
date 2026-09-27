@@ -14,6 +14,21 @@
     </div>
     <div class="header-actions">
       <p-button
+        label="Storefront (Cards)"
+        icon="pi pi-shopping-bag"
+        severity="success"
+        (onClick)="navigateTo('/shop')" />
+      <p-button
+        label="Orders"
+        icon="pi pi-receipt"
+        [outlined]="true"
+        (onClick)="navigateTo('/orders')" />
+      <p-button
+        label="Payments"
+        icon="pi pi-credit-card"
+        [outlined]="true"
+        (onClick)="navigateTo('/payments')" />
+      <p-button
         label="View Products"
         icon="pi pi-box"
         [outlined]="true"
@@ -27,6 +42,36 @@
 
   <!-- ── 1. Stats Metric Cards (PrimeNG p-card) ── -->
   <div class="stats-grid">
+
+    <!-- Card: Orders -->
+    <p-card styleClass="stat-card stat-orders" (click)="navigateTo('/orders')">
+      <div class="stat-content">
+        <div class="stat-info">
+          <span class="stat-label">Total Orders</span>
+          <h3 class="stat-number">{{ totalOrders() }}</h3>
+          <span class="stat-badge"><i class="pi pi-receipt"></i> Store Orders</span>
+        </div>
+        <div class="stat-icon-box" style="color: #7c3aed; background: #f5f3ff;">
+          <i class="pi pi-shopping-cart"></i>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Card: Payment Volume -->
+    <p-card styleClass="stat-card stat-payments" (click)="navigateTo('/payments')">
+      <div class="stat-content">
+        <div class="stat-info">
+          <span class="stat-label">Paid Volume</span>
+          <h3 class="stat-number">₹ {{ (paymentStats()?.totalVolume || 0) | number: '1.2-2' }}</h3>
+          <span class="stat-badge" style="color: #059669;">
+            <i class="pi pi-check-circle"></i> {{ paymentStats()?.successfulTransactions || 0 }} Settled
+          </span>
+        </div>
+        <div class="stat-icon-box">
+          <i class="pi pi-credit-card"></i>
+        </div>
+      </div>
+    </p-card>
 
     <!-- Card: Products -->
     <p-card styleClass="stat-card stat-products" (click)="navigateTo('/products')">
@@ -66,20 +111,6 @@
         </div>
         <div class="stat-icon-box">
           <i class="pi pi-bell"></i>
-        </div>
-      </div>
-    </p-card>
-
-    <!-- Card: PrimeNG Version -->
-    <p-card styleClass="stat-card stat-system">
-      <div class="stat-content">
-        <div class="stat-info">
-          <span class="stat-label">UI Framework</span>
-          <h3 class="stat-number" style="font-size: 1.3rem;">PrimeNG 19</h3>
-          <span class="stat-badge"><i class="pi pi-palette"></i> Aura Theme</span>
-        </div>
-        <div class="stat-icon-box">
-          <i class="pi pi-prime"></i>
         </div>
       </div>
     </p-card>

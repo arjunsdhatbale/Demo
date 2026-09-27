@@ -42,6 +42,10 @@ export class UserService {
     return this.http.get<ApiResponse<User[]>>(`${this.apiUrl}/search?keyword=${keyword}`);
   }
 
+  resendWelcomeEmail(id: number): Observable<ApiResponse<string>> {
+    return this.http.post<ApiResponse<string>>(`${this.apiUrl}/${id}/resend-welcome-email`, null);
+  }
+
   // ── Excel Bulk Upload Endpoints ─────────────────────────────────────
   uploadExcel(file: File): Observable<ApiResponse<UploadResponse>> {
     const formData = new FormData();

@@ -1,0 +1,427 @@
+.orders-page-container {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+
+    h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--p-text-color);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+
+      i {
+        color: var(--p-primary-color);
+      }
+    }
+
+    .active-user-badge {
+      background: var(--p-surface-100, #f1f5f9);
+      border: 1px solid var(--p-content-border-color);
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: var(--p-text-secondary-color);
+
+      strong {
+        color: var(--p-primary-color);
+      }
+    }
+  }
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  .stat-card {
+    background: var(--p-content-background);
+    border: 1px solid var(--p-content-border-color);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+
+    .stat-meta {
+      .stat-title {
+        font-size: 0.82rem;
+        color: var(--p-text-secondary-color);
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+
+      .stat-val {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--p-text-color);
+      }
+    }
+
+    .stat-icon-wrapper {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      i {
+        font-size: 1.25rem;
+      }
+
+      &.blue {
+        background: #eff6ff;
+        color: #2563eb;
+      }
+
+      &.green {
+        background: #f0fdf4;
+        color: #16a34a;
+      }
+
+      &.orange {
+        background: #fff7ed;
+        color: #ea580c;
+      }
+
+      &.teal {
+        background: #f0fdfa;
+        color: #0d9488;
+      }
+    }
+  }
+}
+
+.orders-card {
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.orders-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--p-content-border-color);
+  background: var(--p-surface-50, #f8fafc);
+
+  .tab-btn {
+    padding: 0.9rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--p-text-secondary-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: var(--p-primary-color);
+    }
+
+    &.active {
+      color: var(--p-primary-color);
+      border-bottom-color: var(--p-primary-color);
+      background: var(--p-content-background);
+    }
+  }
+}
+
+.orders-filters-bar {
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+  flex-wrap: wrap;
+
+  .search-field {
+    flex: 1;
+    min-width: 240px;
+  }
+
+  .status-select {
+    min-width: 180px;
+  }
+}
+
+.orders-table {
+  .order-number-tag {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--p-primary-color);
+    background: var(--p-primary-50);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .date-cell, .customer-cell, .payment-info-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    small {
+      color: var(--p-text-secondary-color);
+      font-size: 0.76rem;
+    }
+  }
+
+  .items-count-badge {
+    background: var(--p-surface-100, #f1f5f9);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .order-total-amount {
+    font-size: 0.95rem;
+    color: var(--p-text-color);
+  }
+
+  .action-buttons-cell {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .empty-table-cell {
+    padding: 3rem 1rem;
+
+    .no-orders-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+
+      i {
+        font-size: 2.5rem;
+        color: var(--p-text-secondary-color);
+      }
+
+      p {
+        margin: 0;
+        color: var(--p-text-secondary-color);
+      }
+    }
+  }
+}
+
+/* Order Details Dialog Styles */
+.details-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  .details-top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--p-content-border-color);
+
+    .order-id-label {
+      font-size: 0.78rem;
+      color: var(--p-text-secondary-color);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .order-title {
+      margin: 0.15rem 0 0.25rem;
+      font-size: 1.35rem;
+      color: var(--p-primary-color);
+    }
+
+    .order-timestamp {
+      font-size: 0.8rem;
+      color: var(--p-text-secondary-color);
+    }
+
+    .details-header-badges {
+      display: flex;
+      gap: 0.5rem;
+    }
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    .info-card {
+      background: var(--p-surface-50, #f8fafc);
+      border: 1px solid var(--p-content-border-color);
+      border-radius: 8px;
+      padding: 0.85rem;
+
+      h4 {
+        margin: 0 0 0.5rem;
+        font-size: 0.88rem;
+        color: var(--p-text-color);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+
+        i {
+          color: var(--p-primary-color);
+        }
+      }
+
+      p {
+        margin: 0.25rem 0;
+        font-size: 0.82rem;
+        color: var(--p-text-secondary-color);
+
+        strong {
+          color: var(--p-text-color);
+        }
+      }
+    }
+  }
+
+  .section-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--p-text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    i {
+      color: var(--p-primary-color);
+    }
+  }
+
+  .ordered-items-box {
+    border: 1px solid var(--p-content-border-color);
+    border-radius: 8px;
+    overflow: hidden;
+
+    .ordered-item-row {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--p-content-border-color);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .item-visual-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #f1f5f9;
+        flex-shrink: 0;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .item-fallback-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          color: #94a3b8;
+        }
+      }
+
+      .item-meta {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .product-title {
+          font-weight: 600;
+          font-size: 0.88rem;
+          color: var(--p-text-color);
+        }
+
+        .product-pricing {
+          font-size: 0.78rem;
+          color: var(--p-text-secondary-color);
+        }
+      }
+
+      .item-subtotal {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--p-text-color);
+      }
+    }
+  }
+
+  .financial-summary {
+    background: var(--p-surface-50, #f8fafc);
+    border: 1px solid var(--p-content-border-color);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    .fin-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--p-text-secondary-color);
+
+      &.grand-total-row {
+        margin-top: 0.25rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed var(--p-content-border-color);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--p-text-color);
+
+        .grand-total-amount {
+          color: var(--p-primary-color);
+          font-size: 1.25rem;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 650px) {
+  .info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

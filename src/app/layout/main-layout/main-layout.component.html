@@ -1,5 +1,3 @@
- 
-
 <div class="app-layout">
 
   <!-- ── Full-Page PrimeNG Sidebar ── -->
@@ -76,18 +74,21 @@
     <ng-template pTemplate="footer">
       <div class="sidebar-footer-box">
         <div class="footer-user-row">
-          <p-avatar label="A" shape="circle" size="large" />
+          <p-avatar
+            [label]="(currentUserService.currentUser().firstName.charAt(0) || 'U')"
+            shape="circle"
+            size="large" />
           <div class="footer-user-info">
-            <span class="footer-name">Arjun Dhatbale</span>
-            <span class="footer-role">Administrator</span>
+            <span class="footer-name">{{ currentUserService.displayName() }}</span>
+            <span class="footer-role">{{ currentUserService.currentUser().role || 'USER' }}</span>
           </div>
           <p-button
-            icon="pi pi-sign-out"
+            icon="pi pi-user-edit"
             [text]="true"
             [rounded]="true"
             severity="secondary"
-            pTooltip="Logout"
-            (onClick)="logout()" />
+            pTooltip="Switch Active User"
+            (onClick)="userSelectPopover.toggle($event)" />
         </div>
       </div>
     </ng-template>
@@ -135,8 +136,6 @@
         </div>
       </ng-template>
 
-
-
       <ng-template pTemplate="center">
         <p-iconfield class="nav-search-field">
           <p-inputicon styleClass="pi pi-search" />
@@ -145,7 +144,7 @@
             type="text"
             [(ngModel)]="navSearchText"
             (keyup.enter)="onNavSearch()"
-            placeholder="Search products, orders..."
+            placeholder="Search products in storefront..."
             class="nav-search-input" />
         </p-iconfield>
       </ng-template>
@@ -161,6 +160,22 @@
             severity="secondary"
             [pTooltip]="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
             (onClick)="toggleDarkMode()" />
+
+          <!-- Shopping Cart Icon with Badge -->
+          <div class="nav-icon-wrapper">
+            <p-button
+              icon="pi pi-shopping-cart"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              pTooltip="Shopping Cart"
+              (onClick)="cartService.toggleDrawer()" />
+            <p-badge
+              *ngIf="cartService.totalItems() > 0"
+              [value]="cartService.totalItems()"
+              severity="danger"
+              styleClass="nav-badge-overlay" />
+          </div>
 
           <!-- Notification Bell with PrimeNG Badge and Popover -->
           <div class="nav-icon-wrapper">
@@ -178,13 +193,17 @@
               styleClass="nav-badge-overlay" />
           </div>
 
-          <!-- User Avatar -->
-          <div class="nav-avatar" (click)="navigateTo('/users')">
+          <!-- User Avatar & Switcher -->
+          <div class="nav-avatar" (click)="userSelectPopover.toggle($event)" pTooltip="Click to switch user role">
             <p-avatar
-              label="A"
+              [label]="(currentUserService.currentUser().firstName.charAt(0) || 'U')"
               shape="circle"
               styleClass="cursor-pointer" />
-            <span class="nav-username">Arjun</span>
+            <span class="nav-username">{{ currentUserService.currentUser().firstName || 'User' }}</span>
+            <p-tag
+              [value]="currentUserService.currentUser().role || 'USER'"
+              [severity]="currentUserService.isAdmin() ? 'danger' : 'info'"
+              styleClass="ml-1" />
           </div>
 
           <!-- Logout -->
@@ -233,6 +252,31 @@
       </div>
     </p-popover>
 
+    <!-- User Switcher Popover -->
+    <p-popover #userSelectPopover>
+      <div style="width: 270px; padding: 0.4rem;">
+        <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.6rem; color: var(--p-text-color); display: flex; align-items: center; gap: 0.4rem;">
+          <i class="pi pi-users" style="color: var(--p-primary-color);"></i> Switch Active User
+        </div>
+        <p style="font-size: 0.78rem; color: var(--p-text-secondary-color); margin: 0 0 0.6rem;">
+          Select a persona to test Admin vs Customer shopping and order management:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 240px; overflow-y: auto;">
+          <div
+            *ngFor="let u of currentUserService.availableUsers()"
+            (click)="currentUserService.switchUser(u); userSelectPopover.hide()"
+            style="padding: 0.5rem 0.6rem; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--p-content-border-color);"
+            [style.background]="u.id === currentUserService.currentUser().id ? 'var(--p-primary-50)' : 'transparent'">
+            <div>
+              <strong style="font-size: 0.85rem; display: block; color: var(--p-text-color);">{{ u.firstName }} {{ u.lastName }}</strong>
+              <small style="color: var(--p-text-secondary-color); font-size: 0.74rem;">{{ u.email }}</small>
+            </div>
+            <p-tag [value]="u.role" [severity]="u.role === 'ADMIN' ? 'danger' : (u.role === 'MANAGER' ? 'warn' : 'info')" />
+          </div>
+        </div>
+      </div>
+    </p-popover>
+
     <!-- ── Page Content ── -->
     <main class="app-content">
       <router-outlet />
@@ -240,6 +284,9 @@
 
   </div>
 
+  <!-- Global Cart Drawer, Checkout Dialog & Payment Gateway Dialog -->
+  <app-cart-drawer />
+  <app-checkout-dialog />
+  <app-payment-dialog />
+
 </div>
-
-

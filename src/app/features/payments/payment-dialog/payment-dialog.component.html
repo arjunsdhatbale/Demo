@@ -1,0 +1,284 @@
+<p-toast />
+
+<p-dialog
+  [(visible)]="isVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!processing()"
+  header="Secure Payment Gateway"
+  [style]="{ width: '580px', maxWidth: '95vw' }"
+  styleClass="payment-gateway-dialog">
+
+  <!-- ── Header Info Bar ── -->
+  <div class="gateway-header-bar" *ngIf="context">
+    <div class="order-info">
+      <span class="order-label">Order:</span>
+      <strong class="order-number">#{{ context.orderNumber }}</strong>
+      <span class="customer-tag">({{ context.customerName }})</span>
+    </div>
+    <div class="amount-badge">
+      <span class="curr">₹</span>
+      <span class="val">{{ context.amount | number: '1.2-2' }}</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!--               1. PAYMENT FORM                  -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div *ngIf="!paymentSuccess() && context" class="gateway-body">
+
+    <!-- Payment Methods Tab Strip -->
+    <div class="payment-tabs-strip">
+      <button
+        type="button"
+        class="tab-item"
+        [class.active]="activeTab === 'UPI'"
+        (click)="selectTab('UPI')">
+        <i class="pi pi-qrcode"></i>
+        <span>UPI / QR</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-item"
+        [class.active]="activeTab === 'CREDIT_CARD'"
+        (click)="selectTab('CREDIT_CARD')">
+        <i class="pi pi-credit-card"></i>
+        <span>Card</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-item"
+        [class.active]="activeTab === 'NET_BANKING'"
+        (click)="selectTab('NET_BANKING')">
+        <i class="pi pi-building"></i>
+        <span>Net Banking</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-item"
+        [class.active]="activeTab === 'CASH_ON_DELIVERY'"
+        (click)="selectTab('CASH_ON_DELIVERY')">
+        <i class="pi pi-wallet"></i>
+        <span>COD</span>
+      </button>
+    </div>
+
+    <!-- ── Tab: UPI / QR ── -->
+    <div *ngIf="activeTab === 'UPI'" class="tab-panel">
+      <div class="upi-container">
+
+        <!-- Simulated QR Box -->
+        <div class="qr-box">
+          <div class="qr-mockup">
+            <i class="pi pi-qrcode qr-icon"></i>
+            <span class="qr-scan-text">Scan with any UPI App</span>
+          </div>
+          <span class="qr-timer"><i class="pi pi-clock"></i> QR code active for 10:00 mins</span>
+        </div>
+
+        <div class="upi-divider">
+          <span>OR PAY VIA UPI ID</span>
+        </div>
+
+        <!-- Apps Quick Select -->
+        <div class="upi-apps-row">
+          <div
+            *ngFor="let app of upiApps"
+            class="upi-app-chip"
+            [class.selected]="selectedUpiApp === app.name"
+            (click)="selectedUpiApp = app.name">
+            <i [class]="app.icon"></i>
+            <span>{{ app.name }}</span>
+          </div>
+        </div>
+
+        <!-- UPI ID Input -->
+        <div class="upi-input-group">
+          <label for="upiId">Enter UPI ID / VPA</label>
+          <input
+            pInputText
+            id="upiId"
+            [(ngModel)]="upiId"
+            placeholder="e.g. yourname@okhdfcbank"
+            class="w-full" />
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Tab: Credit / Debit Card ── -->
+    <div *ngIf="activeTab === 'CREDIT_CARD'" class="tab-panel">
+      <div class="card-container">
+
+        <!-- Visual Animated Card Preview -->
+        <div class="visual-card-preview">
+          <div class="card-preview-top">
+            <i class="pi pi-shield card-chip"></i>
+            <span class="card-brand">DEBIT / CREDIT</span>
+          </div>
+          <div class="card-preview-number">{{ cardNumber || '•••• •••• •••• ••••' }}</div>
+          <div class="card-preview-bottom">
+            <div>
+              <span class="card-lbl">CARD HOLDER</span>
+              <span class="card-txt">{{ cardHolder || 'YOUR NAME' }}</span>
+            </div>
+            <div>
+              <span class="card-lbl">EXPIRES</span>
+              <span class="card-txt">{{ cardExpiry || 'MM/YY' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Form Fields -->
+        <div class="card-fields-grid">
+          <div class="field-item full">
+            <label for="cardNumber">Card Number</label>
+            <input
+              pInputText
+              id="cardNumber"
+              [(ngModel)]="cardNumber"
+              (input)="formatCardNumber()"
+              maxlength="19"
+              placeholder="1234 5678 9012 3456"
+              class="w-full" />
+          </div>
+
+          <div class="field-item full">
+            <label for="cardHolder">Cardholder Name</label>
+            <input
+              pInputText
+              id="cardHolder"
+              [(ngModel)]="cardHolder"
+              placeholder="Name on card"
+              class="w-full" />
+          </div>
+
+          <div class="field-item half">
+            <label for="cardExpiry">Expiry (MM/YY)</label>
+            <input
+              pInputText
+              id="cardExpiry"
+              [(ngModel)]="cardExpiry"
+              (input)="formatExpiry()"
+              maxlength="5"
+              placeholder="MM/YY"
+              class="w-full" />
+          </div>
+
+          <div class="field-item half">
+            <label for="cardCvv">CVV / CVC</label>
+            <input
+              pInputText
+              type="password"
+              id="cardCvv"
+              [(ngModel)]="cardCvv"
+              maxlength="4"
+              placeholder="•••"
+              class="w-full" />
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Tab: Net Banking ── -->
+    <div *ngIf="activeTab === 'NET_BANKING'" class="tab-panel">
+      <div class="netbanking-container">
+        <label class="bank-lbl">Select Your Bank</label>
+        <div class="banks-grid">
+          <div
+            *ngFor="let bank of banks"
+            class="bank-chip"
+            [class.selected]="selectedBank === bank.name"
+            (click)="selectedBank = bank.name">
+            <i class="pi pi-building bank-icon"></i>
+            <span class="bank-name">{{ bank.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: Cash on Delivery ── -->
+    <div *ngIf="activeTab === 'CASH_ON_DELIVERY'" class="tab-panel">
+      <div class="cod-container">
+        <div class="cod-icon-circle">
+          <i class="pi pi-wallet"></i>
+        </div>
+        <h4>Pay on Arrival</h4>
+        <p>You can pay via Cash, UPI QR code, or Card directly to the delivery partner upon arrival.</p>
+        <span class="cod-alert">Order total: ₹{{ context.amount | number: '1.2-2' }}</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!--               2. SUCCESS STATE                 -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div *ngIf="paymentSuccess() && completedPayment()" class="payment-success-view">
+    <div class="success-icon-wrap">
+      <i class="pi pi-check-circle"></i>
+    </div>
+    <h3 class="success-title">Payment Approved!</h3>
+    <p class="success-subtitle">Your transaction has been securely processed and confirmed.</p>
+
+    <div class="receipt-mini-box">
+      <div class="receipt-line">
+        <span>Transaction ID:</span>
+        <strong class="receipt-highlight">{{ completedPayment()?.transactionId }}</strong>
+      </div>
+      <div class="receipt-line">
+        <span>Order Number:</span>
+        <strong>#{{ completedPayment()?.orderNumber }}</strong>
+      </div>
+      <div class="receipt-line">
+        <span>Amount Paid:</span>
+        <strong class="paid-amount">₹ {{ completedPayment()?.amount | number: '1.2-2' }}</strong>
+      </div>
+      <div class="receipt-line">
+        <span>Payment Method:</span>
+        <span>{{ completedPayment()?.paymentMethod }}</span>
+      </div>
+      <div class="receipt-line">
+        <span>Date & Time:</span>
+        <span>{{ completedPayment()?.paymentDate | date: 'medium' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Dialog Footer ── -->
+  <ng-template pTemplate="footer">
+    <div class="gateway-footer">
+      <div *ngIf="!paymentSuccess() && context" class="footer-btn-row">
+        <p-button
+          label="Cancel"
+          icon="pi pi-times"
+          severity="secondary"
+          [text]="true"
+          [disabled]="processing()"
+          (onClick)="close()" />
+
+        <p-button
+          [label]="'Pay ₹ ' + (context.amount | number: '1.2-2')"
+          icon="pi pi-lock"
+          severity="success"
+          [loading]="processing()"
+          (onClick)="executePayment()" />
+      </div>
+
+      <div *ngIf="paymentSuccess()" class="footer-btn-row">
+        <p-button
+          label="Close & View Orders"
+          icon="pi pi-check"
+          severity="primary"
+          styleClass="w-full"
+          (onClick)="close()" />
+      </div>
+    </div>
+  </ng-template>
+
+</p-dialog>

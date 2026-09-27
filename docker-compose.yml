@@ -1,0 +1,12 @@
+﻿version: '3.8'
+
+services:
+  angular-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: angular-demo:latest
+    container_name: angular-demo-app
+    ports:
+      - "4200:80"
+    restart: unless-stopped

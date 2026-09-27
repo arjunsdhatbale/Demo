@@ -1,36 +1,38 @@
-# ═══════════════════════════════════════════════
-# Stage 1 — BUILD Angular
-# ═══════════════════════════════════════════════
-FROM node:20-alpine AS builder
+﻿# ==========================================
+# Stage 1: Build the Angular SPA Application
+# ==========================================
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy package files first (cache npm install layer)
+# Copy package manifests first to leverage Docker layer caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --silent
+# Install npm dependencies
+RUN npm ci
 
-# Copy source
+# Copy all project source code
 COPY . .
 
-# Build Angular for production
-RUN npm run build -- --configuration=production
+# Build production bundle (Angular 19 output in dist/demo/browser)
+RUN npm run build
 
-# ═══════════════════════════════════════════════
-# Stage 2 — SERVE with Nginx
-# ═══════════════════════════════════════════════
+# ==========================================
+# Stage 2: Serve using lightweight Nginx
+# ==========================================
 FROM nginx:alpine
 
-# Remove default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
+# Clean default nginx static files
+RUN rm -rf /usr/share/nginx/html/*
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/
+# Copy custom Nginx configuration with SPA fallback routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built Angular app
-COPY --from=builder /app/dist/demo/browser /usr/share/nginx/html
+# Copy compiled Angular distribution from build stage
+COPY --from=build /app/dist/demo/browser /usr/share/nginx/html
 
+# Expose standard web container port
 EXPOSE 80
 
+# Start Nginx web server
 CMD ["nginx", "-g", "daemon off;"]

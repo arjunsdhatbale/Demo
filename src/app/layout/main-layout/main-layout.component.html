@@ -89,6 +89,13 @@
             severity="secondary"
             pTooltip="Switch Active User"
             (onClick)="userSelectPopover.toggle($event)" />
+          <p-button
+            icon="pi pi-sign-out"
+            [text]="true"
+            [rounded]="true"
+            severity="danger"
+            pTooltip="Logout"
+            (onClick)="logout()" />
         </div>
       </div>
     </ng-template>

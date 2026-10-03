@@ -18,6 +18,7 @@ import { TagModule } from 'primeng/tag';
 import { NotificationService } from '../../features/notifications/services/notification.service';
 import { CartService } from '../../features/orders/services/cart.service';
 import { CurrentUserService } from '../../core/services/current-user.service';
+import { AuthService } from '../../core/services/auth.service';
 import { CartDrawerComponent } from '../../features/orders/cart-drawer/cart-drawer.component';
 import { CheckoutDialogComponent } from '../../features/orders/checkout-dialog/checkout-dialog.component';
 import { PaymentDialogComponent } from '../../features/payments/payment-dialog/payment-dialog.component';
@@ -54,6 +55,7 @@ export class MainLayoutComponent implements OnInit {
   private notificationService = inject(NotificationService);
   public cartService = inject(CartService);
   public currentUserService = inject(CurrentUserService);
+  public authService = inject(AuthService);
 
   sidebarVisible = true;
   isMobile = false;
@@ -131,7 +133,7 @@ export class MainLayoutComponent implements OnInit {
   }
 
   logout() {
-    this.router.navigate(['/dashboard']);
+    this.authService.logout();
   }
 
   isActive(route: string): boolean {

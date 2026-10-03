@@ -13,7 +13,7 @@
       </h2>
       <span class="total-badge">{{ products().length }} Products</span>
     </div>
-    <div class="header-actions" style="display: flex; gap: 0.75rem; align-items: center;">
+    <div *ngIf="isAdmin()" class="header-actions" style="display: flex; gap: 0.75rem; align-items: center;">
       <p-button
         label="Bulk Upload (Excel)"
         icon="pi pi-file-excel"
@@ -118,12 +118,14 @@
               severity="success"
               (onClick)="navigateToDetail(product)" />
             <p-button
+              *ngIf="isAdmin()"
               icon="pi pi-pencil"
               [rounded]="true"
               [text]="true"
               severity="info"
               (onClick)="navigateToEdit(product)" />
             <p-button
+              *ngIf="isAdmin()"
               icon="pi pi-trash"
               [rounded]="true"
               [text]="true"

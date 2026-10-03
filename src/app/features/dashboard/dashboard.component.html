@@ -88,7 +88,7 @@
     </p-card>
 
     <!-- Card: Users -->
-    <p-card styleClass="stat-card stat-users" (click)="navigateTo('/users')">
+    <p-card *ngIf="isAdmin()" styleClass="stat-card stat-users" (click)="navigateTo('/users')">
       <div class="stat-content">
         <div class="stat-info">
           <span class="stat-label">Registered Users</span>

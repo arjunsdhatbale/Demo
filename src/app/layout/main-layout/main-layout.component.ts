@@ -65,17 +65,21 @@ export class MainLayoutComponent implements OnInit {
   notifications = this.notificationService.notifications;
   unreadCount = this.notificationService.unreadCount;
 
-  menuItems = [
-    { label: 'Dashboard', route: '/dashboard', icon: 'pi pi-home' },
-    { label: 'Storefront', route: '/shop', icon: 'pi pi-shopping-bag' },
-    { label: 'Orders', route: '/orders', icon: 'pi pi-receipt' },
-    { label: 'Payments', route: '/payments', icon: 'pi pi-credit-card' },
-    { label: 'Products', route: '/products', icon: 'pi pi-box' },
-    { label: 'Product Upload', route: '/products/bulk-upload', icon: 'pi pi-upload' },
-    { label: 'Users', route: '/users', icon: 'pi pi-users' },
-    { label: 'User Upload', route: '/users/bulk-upload', icon: 'pi pi-file-excel' },
-    { label: 'Notifications', route: '/notifications', icon: 'pi pi-bell', badge: true }
-  ];
+  menuItems = computed(() => {
+    const isAdmin = this.authService.isAdmin();
+    const items = [
+      { label: 'Dashboard', route: '/dashboard', icon: 'pi pi-home', adminOnly: false, badge: false },
+      { label: 'Storefront', route: '/shop', icon: 'pi pi-shopping-bag', adminOnly: false, badge: false },
+      { label: 'Orders', route: '/orders', icon: 'pi pi-receipt', adminOnly: false, badge: false },
+      { label: 'Payments', route: '/payments', icon: 'pi pi-credit-card', adminOnly: false, badge: false },
+      { label: 'Products', route: '/products', icon: 'pi pi-box', adminOnly: false, badge: false },
+      { label: 'Product Upload', route: '/products/bulk-upload', icon: 'pi pi-upload', adminOnly: true, badge: false },
+      { label: 'Users', route: '/users', icon: 'pi pi-users', adminOnly: true, badge: false },
+      { label: 'User Upload', route: '/users/bulk-upload', icon: 'pi pi-file-excel', adminOnly: true, badge: false },
+      { label: 'Notifications', route: '/notifications', icon: 'pi pi-bell', adminOnly: false, badge: true }
+    ];
+    return items.filter(item => !item.adminOnly || isAdmin);
+  });
 
   constructor() {
     this.notificationService.init();

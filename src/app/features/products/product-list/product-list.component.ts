@@ -17,6 +17,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { ProductService } from '../services/product.service';
 import { ProductStore } from '../../../store/product.store';
 import { Product } from '../models/product.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { Select } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
 
@@ -124,6 +125,9 @@ export class ProductListComponent implements OnInit {
   private router = inject(Router);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  public authService = inject(AuthService);
+
+  isAdmin = this.authService.isAdmin;
 
   products = this.productStore.products;
   loading = this.productStore.loading;

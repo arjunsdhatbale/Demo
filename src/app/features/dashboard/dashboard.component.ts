@@ -17,6 +17,7 @@ import { PaymentService } from '../payments/services/payment.service';
 import { PaymentStats } from '../payments/models/payment.model';
 import { ProductStore } from '../../store/product.store';
 import { UserStore } from '../../store/user.store';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -44,6 +45,7 @@ export class DashboardComponent implements OnInit {
   private paymentService = inject(PaymentService);
   private productStore = inject(ProductStore);
   private userStore = inject(UserStore);
+  public authService = inject(AuthService);
 
   customMessage = '';
   totalOrders = signal<number>(0);
@@ -52,6 +54,7 @@ export class DashboardComponent implements OnInit {
   unreadCount = this.notificationService.unreadCount;
   totalProducts = computed(() => this.productStore.totalProducts());
   totalUsers = computed(() => this.userStore.totalUsers());
+  isAdmin = this.authService.isAdmin;
 
   ngOnInit(): void {
     if (this.productStore.products().length === 0) {
@@ -63,7 +66,7 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    if (this.userStore.users().length === 0) {
+    if (this.isAdmin() && this.userStore.users().length === 0) {
       this.userService.getAllUsers().subscribe({
         next: (res) => {
           if (res?.data) this.userStore.setUsers(res.data);

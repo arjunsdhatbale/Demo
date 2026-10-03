@@ -1,0 +1,152 @@
+<div class="register-page">
+  <div class="register-wrapper">
+    <p-card styleClass="register-card">
+      <ng-template pTemplate="header">
+        <div class="register-header">
+          <div class="brand-avatar">
+            <i class="pi pi-user-plus"></i>
+          </div>
+          <h2>Create Your Account</h2>
+          <p class="subtitle">Join Java21 Demo Application by signing up below</p>
+        </div>
+      </ng-template>
+
+      <!-- Info notice when redirected from unregistered Google login -->
+      <div *ngIf="infoNotice()" class="info-banner">
+        <i class="pi pi-info-circle"></i>
+        <span>{{ infoNotice() }}</span>
+      </div>
+
+      <!-- Error Alert Banner -->
+      <div *ngIf="errorMessage()" class="error-banner">
+        <i class="pi pi-exclamation-circle"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+
+      <form (ngSubmit)="onSubmit()" class="register-form">
+        <!-- Names Row -->
+        <div class="form-row">
+          <div class="field">
+            <label for="firstName">First Name *</label>
+            <input
+              id="firstName"
+              type="text"
+              pInputText
+              [(ngModel)]="firstName"
+              name="firstName"
+              placeholder="John"
+              required
+              class="w-full"
+              autocomplete="given-name" />
+          </div>
+
+          <div class="field">
+            <label for="lastName">Last Name *</label>
+            <input
+              id="lastName"
+              type="text"
+              pInputText
+              [(ngModel)]="lastName"
+              name="lastName"
+              placeholder="Doe"
+              required
+              class="w-full"
+              autocomplete="family-name" />
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="field">
+          <label for="regEmail">Email Address *</label>
+          <div class="input-wrapper">
+            <i class="pi pi-envelope field-icon"></i>
+            <input
+              id="regEmail"
+              type="email"
+              pInputText
+              [(ngModel)]="email"
+              name="email"
+              placeholder="user@example.com"
+              required
+              class="w-full pl-5"
+              autocomplete="email" />
+          </div>
+        </div>
+
+        <!-- Phone -->
+        <div class="field">
+          <label for="regPhone">Phone Number</label>
+          <div class="input-wrapper">
+            <i class="pi pi-phone field-icon"></i>
+            <input
+              id="regPhone"
+              type="tel"
+              pInputText
+              [(ngModel)]="phone"
+              name="phone"
+              placeholder="9876543210 (10 digits)"
+              class="w-full pl-5"
+              autocomplete="tel" />
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field">
+          <label for="regPassword">Password *</label>
+          <div class="input-wrapper">
+            <i class="pi pi-lock field-icon"></i>
+            <p-password
+              id="regPassword"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="Minimum 6 characters"
+              [feedback]="false"
+              [toggleMask]="true"
+              styleClass="w-full"
+              inputStyleClass="w-full pl-5"
+              required
+              autocomplete="new-password" />
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="field">
+          <label for="confirmPassword">Confirm Password *</label>
+          <div class="input-wrapper">
+            <i class="pi pi-lock field-icon"></i>
+            <p-password
+              id="confirmPassword"
+              [(ngModel)]="confirmPassword"
+              name="confirmPassword"
+              placeholder="Re-enter password"
+              [feedback]="false"
+              [toggleMask]="true"
+              styleClass="w-full"
+              inputStyleClass="w-full pl-5"
+              required
+              autocomplete="new-password" />
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <p-button
+          type="submit"
+          label="Create Account"
+          icon="pi pi-check"
+          [loading]="loading()"
+          styleClass="w-full mt-3 submit-btn" />
+      </form>
+
+      <div class="signin-prompt">
+        <span>Already have an account?</span>
+        <a routerLink="/login" class="signin-link">Sign In</a>
+      </div>
+
+      <ng-template pTemplate="footer">
+        <div class="register-footer">
+          <span>Java 21 REST API &bull; Angular 19 &bull; PrimeNG</span>
+        </div>
+      </ng-template>
+    </p-card>
+  </div>
+</div>

@@ -40,7 +40,7 @@
     <div class="sidebar-nav-container">
       <nav class="sidebar-nav">
         <div
-          *ngFor="let item of menuItems"
+          *ngFor="let item of menuItems()"
           class="nav-item"
           [class.active]="isActive(item.route)"
           (click)="onNavItemClick(item.route)">
@@ -83,6 +83,7 @@
             <span class="footer-role">{{ currentUserService.currentUser().role || 'USER' }}</span>
           </div>
           <p-button
+            *ngIf="authService.isAdmin()"
             icon="pi pi-user-edit"
             [text]="true"
             [rounded]="true"

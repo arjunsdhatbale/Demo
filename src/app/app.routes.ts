@@ -1,12 +1,23 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () =>
       import('./features/auth/login/login.component').then(m => m.LoginComponent)
+  },
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/auth/register/register.component').then(m => m.RegisterComponent)
+  },
+  {
+    path: 'signup',
+    redirectTo: 'register',
+    pathMatch: 'full'
   },
   {
     path: 'oauth2/callback',
@@ -26,6 +37,7 @@ export const routes: Routes = [
       },
       {
         path: 'users',
+        canActivate: [adminGuard],
         loadChildren: () =>
           import('./features/users/users.routes').then(m => m.userRoutes)
       },

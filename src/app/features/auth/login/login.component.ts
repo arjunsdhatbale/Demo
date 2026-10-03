@@ -1,7 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { Card } from 'primeng/card';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
@@ -15,6 +15,7 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     Card,
     InputText,
     Password,
@@ -23,7 +24,7 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -32,10 +33,24 @@ export class LoginComponent {
   username = '';
   password = '';
   errorMessage = signal<string | null>(null);
+  successNotice = signal<string | null>(null);
   loading = signal<boolean>(false);
 
+  ngOnInit(): void {
+    const params = this.route.snapshot.queryParams;
+    if (params['registered'] === 'true') {
+      this.successNotice.set('Account registered successfully! Please sign in with your credentials.');
+    }
+    if (params['email']) {
+      this.username = decodeURIComponent(params['email']);
+    }
+    if (params['error'] === 'not_registered') {
+      this.errorMessage.set('Account not found in our database. Please sign up first before signing in.');
+    }
+  }
+
   quickFill() {
-    this.username = 'user';
+    this.username = 'user@example.com';
     this.password = 'password';
     this.errorMessage.set(null);
   }
@@ -46,12 +61,13 @@ export class LoginComponent {
 
   onSubmit() {
     if (!this.username.trim() || !this.password.trim()) {
-      this.errorMessage.set('Please enter both username and password.');
+      this.errorMessage.set('Please enter both username/email and password.');
       return;
     }
 
     this.loading.set(true);
     this.errorMessage.set(null);
+    this.successNotice.set(null);
 
     this.authService.login({
       username: this.username.trim(),
@@ -70,7 +86,7 @@ export class LoginComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        const detail = err.error?.message || 'Invalid username or password. Please try again.';
+        const detail = err.error?.message || 'Invalid username or password. Please verify your registered account.';
         this.errorMessage.set(detail);
       }
     });

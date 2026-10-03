@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginRequest, AuthUser, ApiResponse } from '../models/auth.model';
+import { LoginRequest, SignUpRequest, AuthUser, ApiResponse } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +25,18 @@ export class AuthService {
 
   currentUser = computed(() => this._currentUser());
   isLoggedIn = computed(() => !!this._currentUser()?.authenticated);
+
+  isAdmin = computed(() => {
+    const user = this._currentUser();
+    if (!user || !user.roles) return false;
+    return user.roles.some(r => r.toUpperCase().includes('ADMIN'));
+  });
+
+  isUser = computed(() => {
+    const user = this._currentUser();
+    if (!user || !user.roles) return false;
+    return user.roles.some(r => r.toUpperCase().includes('USER')) && !this.isAdmin();
+  });
 
   private getInitialUser(): AuthUser | null {
     if (this.isBrowser) {
@@ -53,19 +65,41 @@ export class AuthService {
     );
   }
 
+  register(userData: SignUpRequest): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/register`, userData);
+  }
+
   loginWithGoogle(): void {
     if (this.isBrowser) {
       window.location.href = this.googleAuthUrl;
     }
   }
 
-  handleOAuthSuccess(token: string, username?: string, email?: string): void {
+  handleOAuthSuccess(token: string, username?: string, email?: string, rolesStr?: string): void {
     const safeUsername = username ? decodeURIComponent(username) : 'GoogleUser';
     const safeEmail = email ? decodeURIComponent(email) : '';
+    let roles = ['ROLE_USER'];
+
+    if (rolesStr) {
+      roles = decodeURIComponent(rolesStr).split(',').map(r => r.trim());
+    } else {
+      try {
+        const payloadBase64 = token.split('.')[1];
+        if (payloadBase64) {
+          const payloadJson = JSON.parse(atob(payloadBase64));
+          if (payloadJson.roles && Array.isArray(payloadJson.roles)) {
+            roles = payloadJson.roles;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not extract roles from JWT', e);
+      }
+    }
 
     const user: AuthUser = {
       username: safeUsername,
-      roles: ['ROLE_USER'],
+      email: safeEmail,
+      roles: roles,
       token: token,
       authenticated: true
     };

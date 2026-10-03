@@ -4,7 +4,11 @@ export interface LoginRequest {
 }
 
 export interface AuthUser {
+  userId?: number;
   username: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
   roles: string[];
   token?: string;
   authenticated: boolean;
@@ -15,4 +19,13 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
   timestamp?: string;
+}
+
+export interface SignUpRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phone?: string;
+  role?: string;
 }
